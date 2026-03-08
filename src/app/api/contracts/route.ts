@@ -85,7 +85,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { jobId, freelancerProfileId, amount, description } = parsed.data;
+    const { jobId, freelancerProfileId, amount, description, milestones } = parsed.data;
 
     // Verify the client owns this job
     const job = await prisma.job.findUnique({
@@ -157,6 +157,17 @@ export async function POST(req: NextRequest) {
         freelancerProfileId,
         amount,
         description,
+        ...(milestones && milestones.length > 0 && {
+          milestones: {
+            create: milestones.map((m, i) => ({
+              title: m.title,
+              description: m.description || "",
+              amount: m.amount,
+              dueDate: m.dueDate ? new Date(m.dueDate) : null,
+              order: i,
+            })),
+          },
+        }),
       },
       include: {
         job: { select: { id: true, title: true } },
@@ -167,6 +178,7 @@ export async function POST(req: NextRequest) {
           include: { user: { select: { id: true, email: true, avatar: true } } },
         },
         payments: true,
+        milestones: { orderBy: { order: "asc" } },
       },
     });
 

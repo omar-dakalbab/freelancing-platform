@@ -84,9 +84,9 @@ export function SkillSelector({
       )}
       <div
         className={cn(
-          "min-h-[42px] w-full rounded-lg border border-gray-300 bg-white px-2 py-1.5 flex flex-wrap gap-1.5",
-          "transition-colors focus-within:border-accent-600 focus-within:ring-2 focus-within:ring-accent-600/20",
-          error && "border-red-500 focus-within:border-red-500 focus-within:ring-red-500/20",
+          "min-h-[42px] w-full rounded-lg border border-gray-200 bg-white px-2 py-1.5 flex flex-wrap gap-1.5",
+          "transition-colors focus-within:border-brand-400 focus-within:ring-2 focus-within:ring-brand-100",
+          error && "border-red-400 focus-within:border-red-400 focus-within:ring-red-100",
           "cursor-text"
         )}
         onClick={() => inputRef.current?.focus()}

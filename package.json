@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "prisma generate && next build",
+    "postinstall": "prisma generate",
     "start": "next start",
     "lint": "eslint",
     "db:generate": "prisma generate",
@@ -40,6 +41,7 @@
     "next": "16.1.6",
     "next-auth": "^5.0.0-beta.30",
     "pg": "^8.20.0",
+    "posthog-js": "^1.359.1",
     "prisma": "^7.4.2",
     "react": "19.2.3",
     "react-dom": "19.2.3",

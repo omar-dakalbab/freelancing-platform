@@ -98,6 +98,32 @@ export async function POST(req: NextRequest) {
         break;
       }
 
+      case "account.updated": {
+        const account = event.data.object as Stripe.Account;
+        const chargesEnabled = account.charges_enabled ?? false;
+        const payoutsEnabled = account.payouts_enabled ?? false;
+
+        if (account.id) {
+          const profile = await prisma.freelancerProfile.findUnique({
+            where: { stripeConnectAccountId: account.id },
+          });
+
+          if (profile) {
+            await prisma.freelancerProfile.update({
+              where: { id: profile.id },
+              data: {
+                stripeConnectOnboarded: chargesEnabled && payoutsEnabled,
+                ...(chargesEnabled && payoutsEnabled && !profile.stripeConnectOnboardedAt
+                  ? { stripeConnectOnboardedAt: new Date() }
+                  : {}),
+              },
+            });
+            console.log(`[Stripe webhook] Connect account ${account.id} updated: charges=${chargesEnabled}, payouts=${payoutsEnabled}`);
+          }
+        }
+        break;
+      }
+
       default:
         console.log(`[Stripe webhook] Unhandled event type: ${event.type}`);
     }

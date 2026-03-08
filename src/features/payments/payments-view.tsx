@@ -1,13 +1,18 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import { DollarSign, ArrowRight, Clock } from "lucide-react";
+import { useSearchParams } from "next/navigation";
+import toast from "react-hot-toast";
+import { DollarSign, ArrowRight, Clock, Landmark, CheckCircle, Loader2 } from "lucide-react";
+import { ScrollReveal } from "@/components/ui/scroll-reveal";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Avatar } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { formatCurrency, formatDate } from "@/lib/utils";
+import { track, EVENTS } from "@/lib/analytics";
 import type { Session } from "next-auth";
-import type { Payment, Contract, ClientProfile, FreelancerProfile, Job, User } from "@prisma/client";
+import type { Payment, Contract, ClientProfile, FreelancerProfile, Job, User, Payout } from "@prisma/client";
 
 type PaymentWithRelations = Payment & {
   contract: Contract & {
@@ -19,11 +24,13 @@ type PaymentWithRelations = Payment & {
       user: Pick<User, "id" | "email" | "avatar">;
     };
   };
+  payouts: Payout[];
 };
 
 interface PaymentsViewProps {
   payments: PaymentWithRelations[];
   session: Session;
+  connectStatus: { onboarded: boolean; accountId: string | null };
 }
 
 const statusConfig: Record<string, { variant: "default" | "success" | "secondary" | "warning" | "destructive"; label: string }> = {
@@ -33,9 +40,53 @@ const statusConfig: Record<string, { variant: "default" | "success" | "secondary
   REFUNDED: { variant: "secondary", label: "Refunded" },
 };
 
-export function PaymentsView({ payments, session }: PaymentsViewProps) {
+function getPayoutBadge(payment: PaymentWithRelations, contractStatus: string) {
+  const latestPayout = payment.payouts[0];
+
+  if (latestPayout?.status === "COMPLETED") {
+    return <Badge variant="success">Paid Out</Badge>;
+  }
+  if (latestPayout?.status === "PROCESSING") {
+    return <Badge variant="warning">Processing</Badge>;
+  }
+  if (latestPayout?.status === "FAILED") {
+    return <Badge variant="destructive">Payout Failed</Badge>;
+  }
+  if (contractStatus === "COMPLETED") {
+    return <Badge variant="warning">Ready to Withdraw</Badge>;
+  }
+  return <Badge variant="warning">Payout Pending</Badge>;
+}
+
+export function PaymentsView({ payments, session, connectStatus }: PaymentsViewProps) {
   const role = session.user.role;
   const userId = session.user.id;
+  const isFreelancer = role === "FREELANCER";
+  const searchParams = useSearchParams();
+  const [connectLoading, setConnectLoading] = useState(false);
+  const [payoutLoadingId, setPayoutLoadingId] = useState<string | null>(null);
+  const [onboarded, setOnboarded] = useState(connectStatus.onboarded);
+
+  // Handle connect return params
+  useEffect(() => {
+    const connectParam = searchParams.get("connect");
+    if (connectParam === "success") {
+      // Check actual status from Stripe
+      fetch("/api/stripe/connect/status")
+        .then((res) => res.json())
+        .then((json) => {
+          if (json.data?.onboarded) {
+            setOnboarded(true);
+            toast.success("Bank account connected successfully!");
+          } else {
+            toast.success("Almost there! Your account is being reviewed by Stripe.");
+          }
+        })
+        .catch(() => {});
+    } else if (connectParam === "refresh") {
+      toast.error("Onboarding was not completed. Please try again.");
+    }
+  }, [searchParams]);
 
   const totalPaid = payments
     .filter((p) => p.status === "COMPLETED")
@@ -44,6 +95,53 @@ export function PaymentsView({ payments, session }: PaymentsViewProps) {
   const totalFees = payments
     .filter((p) => p.status === "COMPLETED")
     .reduce((sum, p) => sum + p.platformFee, 0);
+
+  const totalWithdrawn = payments
+    .filter((p) => p.payouts.some((po) => po.status === "COMPLETED"))
+    .reduce((sum, p) => sum + (p.amount - p.platformFee), 0);
+
+  async function handleConnect() {
+    setConnectLoading(true);
+    try {
+      const res = await fetch("/api/stripe/connect", { method: "POST" });
+      const json = await res.json();
+      if (res.ok && json.data?.url) {
+        track(EVENTS.STRIPE_CONNECTED);
+        window.location.href = json.data.url;
+      } else {
+        toast.error(json.error?.message || "Failed to start onboarding");
+        setConnectLoading(false);
+      }
+    } catch {
+      toast.error("Something went wrong");
+      setConnectLoading(false);
+    }
+  }
+
+  async function handleRequestPayout(paymentId: string, e: React.MouseEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+    setPayoutLoadingId(paymentId);
+    try {
+      const res = await fetch("/api/stripe/payout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ paymentId }),
+      });
+      const json = await res.json();
+      if (res.ok) {
+        toast.success("Payout initiated successfully!");
+        track(EVENTS.PAYOUT_REQUESTED, { payment_id: paymentId });
+        window.location.reload();
+      } else {
+        toast.error(json.error?.message || "Payout request failed");
+      }
+    } catch {
+      toast.error("Something went wrong");
+    } finally {
+      setPayoutLoadingId(null);
+    }
+  }
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
@@ -54,9 +152,48 @@ export function PaymentsView({ payments, session }: PaymentsViewProps) {
         </p>
       </div>
 
+      {/* Connect bank account banner for freelancers */}
+      {isFreelancer && !onboarded && (
+        <div className="mb-6 rounded-2xl border border-accent-200 bg-accent-50 p-6">
+          <div className="flex items-start gap-4">
+            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-accent-100 shrink-0">
+              <Landmark className="h-5 w-5 text-accent-700" />
+            </div>
+            <div className="flex-1">
+              <h3 className="text-sm font-semibold text-gray-900">Connect your bank account</h3>
+              <p className="mt-1 text-sm text-gray-600">
+                Set up your payout method to withdraw earnings from completed contracts.
+                You&apos;ll be redirected to Stripe to securely add your bank details.
+              </p>
+              <Button
+                className="mt-3"
+                size="sm"
+                onClick={handleConnect}
+                loading={connectLoading}
+              >
+                <Landmark className="h-4 w-4" />
+                Connect Bank Account
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {isFreelancer && onboarded && (
+        <div className="mb-6 rounded-2xl border border-green-200 bg-green-50 p-4">
+          <div className="flex items-center gap-3">
+            <CheckCircle className="h-5 w-5 text-green-600 shrink-0" />
+            <p className="text-sm text-green-800">
+              <span className="font-medium">Bank account connected.</span>{" "}
+              You can request payouts for completed contracts.
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Summary cards */}
       {payments.length > 0 && (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 mb-8">
+        <div className={`grid grid-cols-1 gap-4 mb-8 ${isFreelancer ? "sm:grid-cols-4" : "sm:grid-cols-3"}`}>
           <Card>
             <CardContent className="flex items-center gap-4 pt-6">
               <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-green-100">
@@ -81,6 +218,19 @@ export function PaymentsView({ payments, session }: PaymentsViewProps) {
               </div>
             </CardContent>
           </Card>
+          {isFreelancer && (
+            <Card>
+              <CardContent className="flex items-center gap-4 pt-6">
+                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-100">
+                  <Landmark className="h-5 w-5 text-emerald-600" />
+                </div>
+                <div>
+                  <p className="text-xl font-bold text-gray-900">{formatCurrency(totalWithdrawn)}</p>
+                  <p className="text-xs text-gray-500">Withdrawn</p>
+                </div>
+              </CardContent>
+            </Card>
+          )}
           <Card>
             <CardContent className="flex items-center gap-4 pt-6">
               <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-100">
@@ -115,14 +265,22 @@ export function PaymentsView({ payments, session }: PaymentsViewProps) {
         </div>
       ) : (
         <div className="space-y-3">
-          {payments.map((payment) => {
+          {payments.map((payment, index) => {
             const isClient = payment.contract.clientProfile.userId === userId;
             const otherParty = isClient
               ? payment.contract.freelancerProfile
               : payment.contract.clientProfile;
+            const latestPayout = payment.payouts[0];
+            const canRequestPayout =
+              isFreelancer &&
+              onboarded &&
+              payment.status === "COMPLETED" &&
+              payment.contract.status === "COMPLETED" &&
+              (!latestPayout || latestPayout.status === "FAILED");
 
             return (
-              <Link key={payment.id} href={`/dashboard/contracts/${payment.contract.id}`} className="block rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-600 focus-visible:ring-offset-2">
+              <ScrollReveal key={payment.id} delay={index * 0.05}>
+              <Link href={`/dashboard/contracts/${payment.contract.id}`} className="block rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-600 focus-visible:ring-offset-2">
                 <div className="flex items-center justify-between p-5 rounded-xl border border-gray-200 bg-white hover:border-brand-300 hover:shadow-sm transition-all cursor-pointer">
                   <div className="flex items-center gap-4 flex-1 min-w-0">
                     <div
@@ -154,8 +312,8 @@ export function PaymentsView({ payments, session }: PaymentsViewProps) {
                         >
                           {statusConfig[payment.status]?.label || payment.status}
                         </Badge>
-                        {payment.status === "COMPLETED" && !isClient && (
-                          <Badge variant="warning">Payout Pending</Badge>
+                        {payment.status === "COMPLETED" && isFreelancer && (
+                          getPayoutBadge(payment, payment.contract.status)
                         )}
                       </div>
                       <div className="flex items-center gap-3 text-xs text-gray-500 mt-0.5">
@@ -172,16 +330,32 @@ export function PaymentsView({ payments, session }: PaymentsViewProps) {
                       <p className="text-sm font-bold text-gray-900">
                         {formatCurrency(payment.amount)}
                       </p>
-                      {!isClient && payment.status === "COMPLETED" && (
+                      {isFreelancer && payment.status === "COMPLETED" && (
                         <p className="text-xs text-green-600">
                           Net: {formatCurrency(payment.amount - payment.platformFee)}
                         </p>
                       )}
                     </div>
-                    <ArrowRight className="h-4 w-4 text-gray-400" />
+                    {canRequestPayout ? (
+                      <Button
+                        size="sm"
+                        onClick={(e) => handleRequestPayout(payment.id, e)}
+                        loading={payoutLoadingId === payment.id}
+                        disabled={payoutLoadingId !== null}
+                      >
+                        {payoutLoadingId === payment.id ? (
+                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        ) : (
+                          "Withdraw"
+                        )}
+                      </Button>
+                    ) : (
+                      <ArrowRight className="h-4 w-4 text-gray-400" />
+                    )}
                   </div>
                 </div>
               </Link>
+              </ScrollReveal>
             );
           })}
         </div>

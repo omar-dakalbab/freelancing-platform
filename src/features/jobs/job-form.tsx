@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import toast from "react-hot-toast";
+import { track, EVENTS } from "@/lib/analytics";
 import Link from "next/link";
 import { ArrowLeft, Briefcase, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -40,8 +41,8 @@ export function JobForm({ mode, job }: JobFormProps) {
       description: job?.description || "",
       category: (job?.category as (typeof JOB_CATEGORIES)[number]) || undefined,
       skills: job?.skills.map((s) => s.name) || [],
-      budgetMin: job?.budgetMin || undefined,
-      budgetMax: job?.budgetMax || undefined,
+      budgetMin: job?.budgetMin ?? undefined,
+      budgetMax: job?.budgetMax ?? undefined,
       timeline: (job?.timeline as (typeof JOB_TIMELINES)[number]) || undefined,
       status: (job?.status as "DRAFT" | "OPEN") || "OPEN",
     },
@@ -69,6 +70,12 @@ export function JobForm({ mode, job }: JobFormProps) {
       if (!res.ok) throw new Error(json.error?.message || "Failed to save job");
 
       toast.success(mode === "create" ? "Job posted successfully!" : "Job updated successfully!");
+      track(mode === "create" ? (data.status === "DRAFT" ? EVENTS.JOB_SAVED_DRAFT : EVENTS.JOB_PUBLISHED) : EVENTS.JOB_EDITED, {
+        job_id: json.data.id,
+        category: data.category,
+        has_budget: !!(data.budgetMin || data.budgetMax),
+        skills_count: skills.length,
+      });
       router.push(mode === "create" ? `/jobs/${json.data.id}` : `/dashboard/my-jobs/${json.data.id}`);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Failed to save job");

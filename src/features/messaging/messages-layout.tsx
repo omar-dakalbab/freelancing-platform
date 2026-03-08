@@ -47,6 +47,7 @@ export function MessagesLayout({ session, activeConversationId }: MessagesLayout
   const [activeId, setActiveId] = useState<string | undefined>(activeConversationId);
 
   const fetchConversations = useCallback(async () => {
+    if (document.hidden) return;
     try {
       const res = await fetch("/api/conversations");
       if (res.ok) {
@@ -62,9 +63,17 @@ export function MessagesLayout({ session, activeConversationId }: MessagesLayout
 
   useEffect(() => {
     fetchConversations();
-    // Poll every 5 seconds to refresh conversation list (unread counts)
-    const interval = setInterval(fetchConversations, 5000);
-    return () => clearInterval(interval);
+    const interval = setInterval(fetchConversations, 10000);
+
+    function handleVisibilityChange() {
+      if (!document.hidden) fetchConversations();
+    }
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
   }, [fetchConversations]);
 
   function handleSelectConversation(id: string) {

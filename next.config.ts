@@ -1,6 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Standalone output for Docker deployments (uncomment for Docker)
+  // output: "standalone",
+
   // Security headers
   async headers() {
     return [

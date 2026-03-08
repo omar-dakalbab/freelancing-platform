@@ -14,6 +14,7 @@ import { clientProfileSchema, type ClientProfileInput } from "@/lib/validations/
 import { calculateProfileCompletion } from "@/lib/utils";
 import type { ClientProfile, User } from "@prisma/client";
 import type { Session } from "next-auth";
+import { track, EVENTS } from "@/lib/analytics";
 
 type ProfileWithUser = ClientProfile & {
   user: Pick<User, "id" | "email" | "avatar" | "createdAt">;
@@ -77,6 +78,7 @@ export function ClientProfileForm({ profile, session }: ClientProfileFormProps) 
 
       setAvatarUrl(json.data.url);
       toast.success("Avatar updated!");
+      track(EVENTS.AVATAR_UPLOADED);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Failed to upload avatar");
     } finally {
@@ -96,6 +98,7 @@ export function ClientProfileForm({ profile, session }: ClientProfileFormProps) 
       if (!res.ok) throw new Error(json.error?.message);
 
       toast.success("Profile saved successfully!");
+      track(EVENTS.PROFILE_UPDATED, { profile_type: "client", completion });
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Failed to save profile");
     }

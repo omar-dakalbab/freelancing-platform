@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { FileText, ArrowRight, Clock } from "lucide-react";
+import { ScrollReveal } from "@/components/ui/scroll-reveal";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -81,13 +82,14 @@ export function ContractsListView({ contracts, session }: ContractsListViewProps
                 Active ({active.length})
               </h2>
               <div className="space-y-3">
-                {active.map((contract) => (
-                  <ContractCard
-                    key={contract.id}
-                    contract={contract}
-                    currentUserId={session.user.id}
-                    role={role}
-                  />
+                {active.map((contract, index) => (
+                  <ScrollReveal key={contract.id} delay={index * 0.05}>
+                    <ContractCard
+                      contract={contract}
+                      currentUserId={session.user.id}
+                      role={role}
+                    />
+                  </ScrollReveal>
                 ))}
               </div>
             </div>
@@ -98,13 +100,14 @@ export function ContractsListView({ contracts, session }: ContractsListViewProps
                 History ({completed.length})
               </h2>
               <div className="space-y-3">
-                {completed.map((contract) => (
-                  <ContractCard
-                    key={contract.id}
-                    contract={contract}
-                    currentUserId={session.user.id}
-                    role={role}
-                  />
+                {completed.map((contract, index) => (
+                  <ScrollReveal key={contract.id} delay={index * 0.05}>
+                    <ContractCard
+                      contract={contract}
+                      currentUserId={session.user.id}
+                      role={role}
+                    />
+                  </ScrollReveal>
                 ))}
               </div>
             </div>

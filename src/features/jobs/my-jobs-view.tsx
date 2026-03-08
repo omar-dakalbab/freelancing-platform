@@ -5,6 +5,7 @@ import { useState } from "react";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import { Plus, Edit, Trash2, Users, Clock, DollarSign, Eye } from "lucide-react";
+import { ScrollReveal } from "@/components/ui/scroll-reveal";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -93,8 +94,9 @@ export function MyJobsView({ jobs: initialJobs }: MyJobsViewProps) {
         </div>
       ) : (
         <div className="space-y-4">
-          {jobs.map((job) => (
-            <Card key={job.id} className="hover:shadow-sm transition-shadow">
+          {jobs.map((job, index) => (
+            <ScrollReveal key={job.id} delay={index * 0.05}>
+            <Card className="hover:shadow-sm transition-shadow">
               <CardContent className="p-5">
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1 min-w-0">
@@ -208,6 +210,7 @@ export function MyJobsView({ jobs: initialJobs }: MyJobsViewProps) {
                 )}
               </CardContent>
             </Card>
+            </ScrollReveal>
           ))}
         </div>
       )}

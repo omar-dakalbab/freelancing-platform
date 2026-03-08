@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Plus, Briefcase, Users, TrendingUp, ArrowRight, Clock, FileText, MessageSquare } from "lucide-react";
+import { ScrollReveal } from "@/components/ui/scroll-reveal";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -78,6 +79,7 @@ export function ClientDashboard({ profile, session, stats }: ClientDashboardProp
       )}
 
       {/* Stats */}
+      <ScrollReveal>
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4 mb-8">
         <Card>
           <CardContent className="flex items-center gap-3 pt-5 pb-5">
@@ -133,6 +135,7 @@ export function ClientDashboard({ profile, session, stats }: ClientDashboardProp
           </Card>
         </Link>
       </div>
+      </ScrollReveal>
 
       {/* Recent Jobs */}
       <ErrorBoundary section="recent jobs">

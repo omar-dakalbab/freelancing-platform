@@ -1,0 +1,16 @@
+node_modules
+.next
+.git
+.gitignore
+*.md
+.env*
+.vscode
+.idea
+docker-compose*.yml
+Dockerfile
+.dockerignore
+playwright-report
+test-results
+tests
+coverage
+.playwright

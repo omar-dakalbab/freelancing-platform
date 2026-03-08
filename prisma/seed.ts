@@ -44,7 +44,7 @@ async function main() {
   // =================== ADMIN ===================
   const admin = await prisma.user.create({
     data: {
-      email: "admin@freelancehub.com",
+      email: "admin@tryletswork.com",
       passwordHash,
       role: "ADMIN",
     },
@@ -631,7 +631,7 @@ My approach:
 
   console.log("\n=== Seed Complete ===");
   console.log("Demo accounts (all use password: Password123):");
-  console.log("  Admin:      admin@freelancehub.com");
+  console.log("  Admin:      admin@tryletswork.com");
   console.log("  Client 1:   techcorp@example.com");
   console.log("  Client 2:   designstudio@example.com");
   console.log("  Client 3:   startupventures@example.com");

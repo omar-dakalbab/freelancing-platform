@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { computeBadgeTier } from "@/lib/freelancer-badges";
 
 export async function GET(req: NextRequest) {
   try {
@@ -37,14 +38,21 @@ export async function GET(req: NextRequest) {
         include: {
           user: { select: { id: true, email: true, avatar: true } },
           skills: true,
-          _count: { select: { contracts: true } },
+          _count: {
+            select: {
+              contracts: { where: { status: "COMPLETED" } },
+            },
+          },
+          contracts: {
+            where: { status: "COMPLETED" },
+            select: { amount: true },
+          },
         },
       }),
       prisma.freelancerProfile.count({ where }),
     ]);
 
     // Get average ratings for each freelancer
-    const freelancerIds = freelancers.map((f) => f.id);
     const reviews = await prisma.review.groupBy({
       by: ["revieweeId"],
       where: { revieweeId: { in: freelancers.map((f) => f.userId) } },
@@ -56,10 +64,30 @@ export async function GET(req: NextRequest) {
       reviews.map((r) => [r.revieweeId, { avg: r._avg.rating ?? 0, count: r._count.rating }])
     );
 
-    const data = freelancers.map((f) => ({
-      ...f,
-      rating: ratingsMap.get(f.userId) ?? { avg: 0, count: 0 },
-    }));
+    const data = freelancers.map((f) => {
+      const rating = ratingsMap.get(f.userId) ?? { avg: 0, count: 0 };
+      const totalEarnings = f.contracts.reduce((sum, c) => sum + c.amount, 0);
+      const profileComplete = !!(f.title && f.bio && f.hourlyRate);
+
+      const badgeTier = computeBadgeTier({
+        completedContracts: f._count.contracts,
+        totalEarnings,
+        avgRating: rating.avg,
+        reviewCount: rating.count,
+        profileComplete,
+        skillsCount: f.skills.length,
+      });
+
+      // Remove contracts array from response (only needed for earnings calc)
+      const { contracts, ...rest } = f;
+
+      return {
+        ...rest,
+        rating,
+        badgeTier,
+        totalEarnings,
+      };
+    });
 
     return NextResponse.json({
       data,

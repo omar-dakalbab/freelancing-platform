@@ -7,10 +7,14 @@ import {
   useCallback,
   type KeyboardEvent,
 } from "react";
-import { MessageCircle, X, Send, Bot, ChevronDown } from "lucide-react";
+import {
+  MessageCircle, X, Send, Bot, ChevronDown, Sparkles,
+  Briefcase, FileText, CreditCard, Rocket, ScrollText, Star,
+  User, RotateCcw,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
-
-// ─── Types ────────────────────────────────────────────────────────────────────
+import { BRAND_NAME } from "@/components/ui/logo";
+import { track, EVENTS } from "@/lib/analytics";
 
 type Role = "user" | "assistant";
 
@@ -18,37 +22,31 @@ interface ChatMessage {
   id: string;
   role: Role;
   content: string;
-  /** True while the assistant is still streaming this message */
   streaming?: boolean;
+  timestamp?: Date;
 }
 
 interface ChatWidgetProps {
-  /** The authenticated user's role, passed from a server component. */
   userRole?: string | null;
 }
 
-// ─── Constants ────────────────────────────────────────────────────────────────
-
-/** Set to true to use the AI-powered /api/chat endpoint instead of static responses */
 const USE_AI = false;
 
 const QUICK_ACTIONS = [
-  "How do I post a job?",
-  "How do I apply for a job?",
-  "How do payments work?",
-  "Help me get started",
-  "How do contracts work?",
-  "How do reviews work?",
+  { label: "Post a job", icon: Briefcase },
+  { label: "Apply for a job", icon: FileText },
+  { label: "How payments work", icon: CreditCard },
+  { label: "Get started", icon: Rocket },
+  { label: "How contracts work", icon: ScrollText },
+  { label: "How reviews work", icon: Star },
 ] as const;
 
 const WELCOME_MESSAGE: ChatMessage = {
   id: "welcome",
   role: "assistant",
-  content:
-    "Hi! I'm the FreelanceHub assistant. I can help you navigate the platform, answer questions about jobs, contracts, payments, and more. What can I help you with today?",
+  content: `Hi! I'm your ${BRAND_NAME} assistant. I can help you with jobs, contracts, payments, and more. What can I help you with?`,
+  timestamp: new Date(),
 };
-
-// ─── Static FAQ responses ────────────────────────────────────────────────────
 
 const STATIC_RESPONSES: Array<{ keywords: string[]; response: string }> = [
   {
@@ -64,12 +62,12 @@ const STATIC_RESPONSES: Array<{ keywords: string[]; response: string }> = [
   {
     keywords: ["payment", "pay", "stripe", "fund", "money"],
     response:
-      "Payments on FreelanceHub:\n\n1. After hiring a freelancer, the client creates a fixed-price contract\n2. The client clicks \"Fund Contract\" to pay via Stripe\n3. Payment is held until the freelancer submits their work\n4. Once the client marks the contract as completed, the freelancer receives payment\n\nA 10% platform fee is applied. All payments are processed securely through Stripe.",
+      `Payments on ${BRAND_NAME}:\n\n1. After hiring a freelancer, the client creates a fixed-price contract\n2. The client clicks "Fund Contract" to pay via Stripe\n3. Payment is held until the freelancer submits their work\n4. Once the client marks the contract as completed, the freelancer receives payment\n\nA 10% platform fee is applied. All payments are processed securely through Stripe.`,
   },
   {
     keywords: ["get started", "start", "begin", "new here", "how to use"],
     response:
-      "Welcome to FreelanceHub! Here's how to get started:\n\nAs a Client:\n\u2022 Sign up and create your company profile\n\u2022 Post your first job with required skills and budget\n\u2022 Review applications and hire the best freelancer\n\nAs a Freelancer:\n\u2022 Sign up and build your profile with skills and portfolio\n\u2022 Browse available jobs and submit proposals\n\u2022 Get hired, complete work, and get paid\n\nNeed help with something specific? Just ask!",
+      `Welcome to ${BRAND_NAME}! Here's how to get started:\n\n**As a Client:**\n\u2022 Sign up and create your company profile\n\u2022 Post your first job with required skills and budget\n\u2022 Review applications and hire the best freelancer\n\n**As a Freelancer:**\n\u2022 Sign up and build your profile with skills and portfolio\n\u2022 Browse available jobs and submit proposals\n\u2022 Get hired, complete work, and get paid`,
   },
   {
     keywords: ["contract", "contracts", "hire", "hiring"],
@@ -84,7 +82,7 @@ const STATIC_RESPONSES: Array<{ keywords: string[]; response: string }> = [
   {
     keywords: ["message", "chat", "messaging", "contact"],
     response:
-      "Messaging on FreelanceHub:\n\n1. When a client shortlists or interacts with an applicant, a conversation is created\n2. Go to Dashboard \u2192 Messages to see all your conversations\n3. Click a conversation to open the chat\n4. Send messages in real-time\n\nYou'll see an unread count badge in the navigation when you have new messages.",
+      `Messaging on ${BRAND_NAME}:\n\n1. When a client shortlists or interacts with an applicant, a conversation is created\n2. Go to Dashboard \u2192 Messages to see all your conversations\n3. Click a conversation to open the chat\n4. Send messages in real-time\n\nYou'll see an unread count badge in the navigation when you have new messages.`,
   },
   {
     keywords: ["profile", "edit profile", "portfolio", "skills", "avatar"],
@@ -94,7 +92,7 @@ const STATIC_RESPONSES: Array<{ keywords: string[]; response: string }> = [
   {
     keywords: ["search", "find", "filter", "browse"],
     response:
-      "Finding jobs on FreelanceHub:\n\n1. Go to the Jobs page from the navigation\n2. Use the search bar to find jobs by keyword\n3. Filter by:\n   \u2022 Skills required\n   \u2022 Budget range\n   \u2022 Category\n4. Click on any job to see full details and apply\n\nNew jobs appear at the top of the listing.",
+      `Finding jobs on ${BRAND_NAME}:\n\n1. Go to the Jobs page from the navigation\n2. Use the search bar to find jobs by keyword\n3. Filter by:\n   \u2022 Skills required\n   \u2022 Budget range\n   \u2022 Category\n4. Click on any job to see full details and apply\n\nNew jobs appear at the top of the listing.`,
   },
 ];
 
@@ -108,79 +106,88 @@ function getStaticResponse(input: string): string {
   return "I can help you with:\n\n\u2022 Posting or finding jobs\n\u2022 Applying for jobs\n\u2022 Contracts and hiring\n\u2022 Payments\n\u2022 Messaging\n\u2022 Reviews and ratings\n\u2022 Profile setup\n\nTry asking about any of these topics, or click one of the quick action buttons!";
 }
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
 function generateId(): string {
   return Math.random().toString(36).slice(2, 10);
 }
 
-// ─── Typing indicator ─────────────────────────────────────────────────────────
+function formatTime(date?: Date): string {
+  if (!date) return "";
+  return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+}
+
+/** Renders markdown-lite: **bold** */
+function renderContent(text: string) {
+  return text.split("\n").map((line, i) => {
+    const parts = line.split(/(\*\*[^*]+\*\*)/g).map((part, j) => {
+      if (part.startsWith("**") && part.endsWith("**")) {
+        return <strong key={j} className="font-semibold">{part.slice(2, -2)}</strong>;
+      }
+      return part;
+    });
+    return (
+      <span key={i}>
+        {i > 0 && <br />}
+        {parts}
+      </span>
+    );
+  });
+}
 
 function TypingIndicator() {
   return (
-    <div className="flex items-end gap-2">
-      <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-brand-800">
+    <div className="flex items-end gap-2.5 px-1">
+      <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-brand-800 to-brand-900 shadow-sm">
         <Bot className="h-3.5 w-3.5 text-white" aria-hidden="true" />
       </div>
-      <div className="rounded-2xl rounded-bl-sm bg-gray-100 px-4 py-3">
-        <span className="flex gap-1" aria-label="Assistant is typing">
-          <span
-            className="h-2 w-2 rounded-full bg-gray-400 animate-bounce"
-            style={{ animationDelay: "0ms" }}
-          />
-          <span
-            className="h-2 w-2 rounded-full bg-gray-400 animate-bounce"
-            style={{ animationDelay: "150ms" }}
-          />
-          <span
-            className="h-2 w-2 rounded-full bg-gray-400 animate-bounce"
-            style={{ animationDelay: "300ms" }}
-          />
+      <div className="rounded-2xl rounded-bl-md bg-gray-100 px-4 py-3">
+        <span className="flex gap-1.5 items-center" aria-label="Assistant is typing">
+          <span className="h-2 w-2 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: "0ms" }} />
+          <span className="h-2 w-2 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: "150ms" }} />
+          <span className="h-2 w-2 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: "300ms" }} />
         </span>
       </div>
     </div>
   );
 }
 
-// ─── Single message bubble ────────────────────────────────────────────────────
-
 function MessageBubble({ message }: { message: ChatMessage }) {
   const isUser = message.role === "user";
 
   return (
-    <div
-      className={cn(
-        "flex items-end gap-2",
-        isUser ? "justify-end" : "justify-start"
-      )}
-    >
+    <div className={cn("flex gap-2.5 px-1", isUser ? "justify-end" : "justify-start")}>
       {!isUser && (
-        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-brand-800">
+        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-brand-800 to-brand-900 shadow-sm mt-0.5">
           <Bot className="h-3.5 w-3.5 text-white" aria-hidden="true" />
         </div>
       )}
-
-      <div
-        className={cn(
-          "max-w-[85%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed whitespace-pre-wrap break-words",
-          isUser
-            ? "bg-brand-800 text-white rounded-br-sm"
-            : "bg-gray-100 text-gray-900 rounded-bl-sm"
-        )}
-      >
-        {message.content}
-        {message.streaming && (
-          <span
-            className="ml-0.5 inline-block h-3.5 w-0.5 animate-pulse bg-current align-middle opacity-75"
-            aria-hidden="true"
-          />
+      <div className="flex flex-col gap-1 max-w-[80%]">
+        <div
+          className={cn(
+            "rounded-2xl px-4 py-2.5 text-[13px] leading-relaxed",
+            isUser
+              ? "bg-gradient-to-br from-brand-800 to-brand-900 text-white rounded-br-md shadow-sm"
+              : "bg-gray-50 text-gray-700 rounded-bl-md border border-gray-100"
+          )}
+        >
+          {isUser ? message.content : renderContent(message.content)}
+          {message.streaming && (
+            <span className="ml-0.5 inline-block h-3.5 w-px animate-pulse bg-current align-middle opacity-60" aria-hidden="true" />
+          )}
+        </div>
+        {message.timestamp && (
+          <span className={cn("text-[10px] text-gray-300 px-1", isUser ? "text-right" : "text-left")}>
+            {formatTime(message.timestamp)}
+          </span>
         )}
       </div>
+      {isUser && (
+        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-xl bg-accent-100 mt-0.5">
+          <User className="h-3.5 w-3.5 text-accent-700" aria-hidden="true" />
+        </div>
+      )}
     </div>
   );
 }
-
-// ─── Main widget ──────────────────────────────────────────────────────────────
 
 export function ChatWidget({ userRole }: ChatWidgetProps) {
   const [isOpen, setIsOpen] = useState(false);
@@ -193,7 +200,6 @@ export function ChatWidget({ userRole }: ChatWidgetProps) {
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const abortRef = useRef<AbortController | null>(null);
 
-  // Auto-scroll to bottom when messages change
   const scrollToBottom = useCallback((behavior: ScrollBehavior = "smooth") => {
     messagesEndRef.current?.scrollIntoView({ behavior });
   }, []);
@@ -206,62 +212,51 @@ export function ChatWidget({ userRole }: ChatWidgetProps) {
   }, [isOpen, scrollToBottom]);
 
   useEffect(() => {
-    if (isOpen) {
-      scrollToBottom();
-    }
+    if (isOpen) scrollToBottom();
   }, [messages, isOpen, scrollToBottom]);
 
-  // Focus input when opened
   useEffect(() => {
-    if (isOpen) {
-      setTimeout(() => inputRef.current?.focus(), 150);
-    }
+    if (isOpen) setTimeout(() => inputRef.current?.focus(), 150);
   }, [isOpen]);
 
   const handleOpen = useCallback(() => {
+    track(EVENTS.CHAT_WIDGET_OPENED);
     setIsOpen(true);
     setHasUnread(false);
   }, []);
 
   const handleClose = useCallback(() => {
+    track(EVENTS.CHAT_WIDGET_CLOSED);
     setIsOpen(false);
-    // Cancel any in-flight stream when user closes the widget
     abortRef.current?.abort();
   }, []);
 
-  // ── Static (FAQ) message handler ──────────────────────────────────────────
+  const handleReset = useCallback(() => {
+    track(EVENTS.CHAT_WIDGET_RESET);
+    abortRef.current?.abort();
+    setMessages([{ ...WELCOME_MESSAGE, id: generateId(), timestamp: new Date() }]);
+    setIsStreaming(false);
+    setInputValue("");
+  }, []);
+
   const sendStaticMessage = useCallback(
     (content: string) => {
       const trimmed = content.trim();
+      track(EVENTS.CHAT_WIDGET_MESSAGE_SENT, { message_length: trimmed.length });
       if (!trimmed || isStreaming) return;
 
       setInputValue("");
 
-      const userMessage: ChatMessage = {
-        id: generateId(),
-        role: "user",
-        content: trimmed,
-      };
-
-      const assistantMessage: ChatMessage = {
-        id: generateId(),
-        role: "assistant",
-        content: "",
-        streaming: true,
-      };
+      const userMessage: ChatMessage = { id: generateId(), role: "user", content: trimmed, timestamp: new Date() };
+      const assistantMessage: ChatMessage = { id: generateId(), role: "assistant", content: "", streaming: true };
 
       setMessages((prev) => [...prev, userMessage, assistantMessage]);
       setIsStreaming(true);
 
-      // Simulate a short typing delay then show the response
       const response = getStaticResponse(trimmed);
       setTimeout(() => {
         setMessages((prev) =>
-          prev.map((m) =>
-            m.id === assistantMessage.id
-              ? { ...m, content: response, streaming: false }
-              : m
-          )
+          prev.map((m) => m.id === assistantMessage.id ? { ...m, content: response, streaming: false, timestamp: new Date() } : m)
         );
         setIsStreaming(false);
         if (!isOpen) setHasUnread(true);
@@ -270,30 +265,20 @@ export function ChatWidget({ userRole }: ChatWidgetProps) {
     [isStreaming, isOpen]
   );
 
-  // ── AI-powered message handler (used when USE_AI = true) ────────────────
   const sendAIMessage = useCallback(
     async (content: string) => {
       const trimmed = content.trim();
+      track(EVENTS.CHAT_WIDGET_MESSAGE_SENT, { message_length: trimmed.length, ai_mode: true });
       if (!trimmed || isStreaming) return;
 
       setInputValue("");
 
-      const userMessage: ChatMessage = {
-        id: generateId(),
-        role: "user",
-        content: trimmed,
-      };
-
+      const userMessage: ChatMessage = { id: generateId(), role: "user", content: trimmed, timestamp: new Date() };
       const updatedMessages = [...messages, userMessage];
       setMessages(updatedMessages);
 
       const assistantId = generateId();
-      const assistantPlaceholder: ChatMessage = {
-        id: assistantId,
-        role: "assistant",
-        content: "",
-        streaming: true,
-      };
+      const assistantPlaceholder: ChatMessage = { id: assistantId, role: "assistant", content: "", streaming: true };
       setMessages((prev) => [...prev, assistantPlaceholder]);
       setIsStreaming(true);
 
@@ -301,26 +286,17 @@ export function ChatWidget({ userRole }: ChatWidgetProps) {
       abortRef.current = controller;
 
       try {
-        const apiMessages = updatedMessages.map((m) => ({
-          role: m.role,
-          content: m.content,
-        }));
-
+        const apiMessages = updatedMessages.map((m) => ({ role: m.role, content: m.content }));
         const res = await fetch("/api/chat", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            messages: apiMessages,
-            userRole: userRole ?? undefined,
-          }),
+          body: JSON.stringify({ messages: apiMessages, userRole: userRole ?? undefined }),
           signal: controller.signal,
         });
 
         if (!res.ok) {
           const err = await res.json().catch(() => ({}));
-          throw new Error(
-            err?.error?.message ?? "Failed to get a response. Please try again."
-          );
+          throw new Error(err?.error?.message ?? "Failed to get a response. Please try again.");
         }
 
         if (!res.body) throw new Error("No response body");
@@ -332,53 +308,29 @@ export function ChatWidget({ userRole }: ChatWidgetProps) {
         while (true) {
           const { done, value } = await reader.read();
           if (done) break;
-
           accumulated += decoder.decode(value, { stream: true });
-
           setMessages((prev) =>
-            prev.map((m) =>
-              m.id === assistantId
-                ? { ...m, content: accumulated, streaming: true }
-                : m
-            )
+            prev.map((m) => m.id === assistantId ? { ...m, content: accumulated, streaming: true } : m)
           );
         }
 
         setMessages((prev) =>
-          prev.map((m) =>
-            m.id === assistantId
-              ? { ...m, content: accumulated, streaming: false }
-              : m
-          )
+          prev.map((m) => m.id === assistantId ? { ...m, content: accumulated, streaming: false, timestamp: new Date() } : m)
         );
-
         if (!isOpen) setHasUnread(true);
       } catch (err) {
         if ((err as Error).name === "AbortError") {
-          setMessages((prev) =>
-            prev.filter((m) => !(m.id === assistantId && m.content === ""))
-          );
+          setMessages((prev) => prev.filter((m) => !(m.id === assistantId && m.content === "")));
           return;
         }
-
-        const errorText =
-          err instanceof Error
-            ? err.message
-            : "Something went wrong. Please try again.";
-
+        const errorText = err instanceof Error ? err.message : "Something went wrong. Please try again.";
         setMessages((prev) =>
-          prev.map((m) =>
-            m.id === assistantId
-              ? { ...m, content: errorText, streaming: false }
-              : m
-          )
+          prev.map((m) => m.id === assistantId ? { ...m, content: errorText, streaming: false, timestamp: new Date() } : m)
         );
       } finally {
         setIsStreaming(false);
         abortRef.current = null;
-        if (inputRef.current) {
-          inputRef.current.style.height = "auto";
-        }
+        if (inputRef.current) inputRef.current.style.height = "auto";
       }
     },
     [messages, isStreaming, userRole, isOpen]
@@ -387,9 +339,7 @@ export function ChatWidget({ userRole }: ChatWidgetProps) {
   const sendMessage = USE_AI ? sendAIMessage : sendStaticMessage;
 
   const handleQuickAction = useCallback(
-    (action: string) => {
-      sendMessage(action);
-    },
+    (action: string) => { track(EVENTS.CHAT_WIDGET_QUICK_ACTION, { action }); sendMessage(action); },
     [sendMessage]
   );
 
@@ -403,77 +353,98 @@ export function ChatWidget({ userRole }: ChatWidgetProps) {
     [inputValue, sendMessage]
   );
 
-  // Determine if we should show quick action chips
-  // Show them only when the only message is the welcome message
   const showQuickActions = messages.length === 1 && messages[0].id === "welcome";
 
   return (
     <>
-      {/* ── Chat window ──────────────────────────────────────────────────── */}
+      {/* Chat window */}
       <div
         className={cn(
-          // Positioning & sizing
-          "fixed bottom-24 right-4 z-50 flex flex-col",
+          "fixed bottom-20 right-4 z-50 flex flex-col",
           "w-[calc(100vw-2rem)] sm:w-[400px]",
-          "h-[min(520px,calc(100dvh-8rem))]",
-          // Appearance
-          "rounded-2xl bg-white shadow-2xl ring-1 ring-black/10",
-          // Animation
-          "transition-all duration-300 ease-in-out origin-bottom-right",
+          "h-[min(560px,calc(100dvh-7rem))]",
+          "rounded-2xl bg-white shadow-2xl shadow-gray-900/10 ring-1 ring-gray-900/5",
+          "transition-all duration-200 ease-out origin-bottom-right",
           isOpen
-            ? "scale-100 opacity-100 pointer-events-auto"
-            : "scale-90 opacity-0 pointer-events-none"
+            ? "scale-100 opacity-100 pointer-events-auto translate-y-0"
+            : "scale-95 opacity-0 pointer-events-none translate-y-2"
         )}
         role="dialog"
-        aria-label="FreelanceHub AI assistant"
+        aria-label={`${BRAND_NAME} AI assistant`}
         aria-modal="false"
       >
-        {/* Header */}
-        <div className="flex shrink-0 items-center justify-between gap-3 rounded-t-2xl bg-brand-800 px-4 py-3">
-          <div className="flex items-center gap-2.5">
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white/20">
-              <Bot className="h-4 w-4 text-white" aria-hidden="true" />
+        {/* Header — dark gradient */}
+        <div className="flex shrink-0 items-center justify-between gap-3 rounded-t-2xl bg-gradient-to-r from-brand-900 to-brand-800 px-4 py-3.5">
+          <div className="flex items-center gap-3">
+            <div className="relative">
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/15 backdrop-blur-sm">
+                <Sparkles className="h-4 w-4 text-white" aria-hidden="true" />
+              </div>
+              <span className={cn(
+                "absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full ring-2 ring-brand-900",
+                isStreaming ? "bg-amber-400" : "bg-emerald-400"
+              )} />
             </div>
             <div>
               <p className="text-sm font-semibold text-white leading-none">
-                FreelanceHub Assistant
+                {BRAND_NAME} AI
               </p>
-              <p className="mt-0.5 text-xs text-brand-300 leading-none">
-                {isStreaming ? "Typing..." : "Online"}
+              <p className="mt-1 text-[11px] text-white/50 leading-none">
+                {isStreaming ? "Thinking..." : "Always here to help"}
               </p>
             </div>
           </div>
-          <button
-            onClick={handleClose}
-            className="flex h-7 w-7 items-center justify-center rounded-full text-white/70 transition-colors hover:bg-white/20 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
-            aria-label="Close chat"
-          >
-            <ChevronDown className="h-4 w-4" aria-hidden="true" />
-          </button>
+          <div className="flex items-center gap-1">
+            <button
+              onClick={handleReset}
+              className="flex h-7 w-7 items-center justify-center rounded-lg text-white/40 transition-colors hover:bg-white/10 hover:text-white/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30"
+              aria-label="Reset conversation"
+              title="New conversation"
+            >
+              <RotateCcw className="h-3.5 w-3.5" aria-hidden="true" />
+            </button>
+            <button
+              onClick={handleClose}
+              className="flex h-7 w-7 items-center justify-center rounded-lg text-white/40 transition-colors hover:bg-white/10 hover:text-white/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30"
+              aria-label="Close chat"
+            >
+              <ChevronDown className="h-4 w-4" aria-hidden="true" />
+            </button>
+          </div>
         </div>
 
         {/* Messages area */}
-        <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
+        <div className="flex-1 overflow-y-auto px-3 py-4 space-y-4 bg-white">
           {messages.map((msg) => (
             <MessageBubble key={msg.id} message={msg} />
           ))}
 
-          {/* Quick action chips — shown only at start */}
+          {/* Quick action grid */}
           {showQuickActions && !isStreaming && (
-            <div className="flex flex-wrap gap-2 pt-1">
-              {QUICK_ACTIONS.map((action) => (
-                <button
-                  key={action}
-                  onClick={() => handleQuickAction(action)}
-                  className="rounded-full border border-accent-400 px-3 py-1.5 text-xs font-medium text-accent-700 transition-colors hover:bg-accent-50 hover:border-accent-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-600"
-                >
-                  {action}
-                </button>
-              ))}
+            <div className="px-1 pt-2">
+              <p className="text-[11px] font-medium text-gray-400 uppercase tracking-wider mb-2.5 px-1">
+                Quick actions
+              </p>
+              <div className="grid grid-cols-2 gap-2">
+                {QUICK_ACTIONS.map((action) => (
+                  <button
+                    key={action.label}
+                    onClick={() => handleQuickAction(action.label)}
+                    className={cn(
+                      "flex items-center gap-2 rounded-xl border border-gray-100 bg-white px-3 py-2.5",
+                      "text-xs font-medium text-gray-600",
+                      "transition-all hover:border-brand-200 hover:bg-brand-50 hover:text-brand-800 hover:shadow-sm",
+                      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-600"
+                    )}
+                  >
+                    <action.icon className="h-3.5 w-3.5 text-gray-400 shrink-0" aria-hidden="true" />
+                    <span className="truncate">{action.label}</span>
+                  </button>
+                ))}
+              </div>
             </div>
           )}
 
-          {/* Typing indicator while awaiting first chunk */}
           {isStreaming &&
             messages[messages.length - 1]?.role === "assistant" &&
             messages[messages.length - 1]?.content === "" && (
@@ -484,27 +455,26 @@ export function ChatWidget({ userRole }: ChatWidgetProps) {
         </div>
 
         {/* Input area */}
-        <div className="shrink-0 rounded-b-2xl border-t border-gray-100 px-3 py-3">
+        <div className="shrink-0 rounded-b-2xl border-t border-gray-100 bg-gray-50/50 px-3 py-3">
           <div className="flex items-end gap-2">
             <textarea
               ref={inputRef}
               value={inputValue}
               onChange={(e) => {
                 setInputValue(e.target.value);
-                // Auto-resize
                 e.target.style.height = "auto";
-                e.target.style.height = `${Math.min(e.target.scrollHeight, 120)}px`;
+                e.target.style.height = `${Math.min(e.target.scrollHeight, 100)}px`;
               }}
               onKeyDown={handleKeyDown}
-              placeholder="Ask me anything… (Enter to send)"
+              placeholder="Ask me anything..."
               rows={1}
               disabled={isStreaming}
               className={cn(
-                "flex-1 resize-none rounded-xl border border-gray-200 bg-gray-50 px-3.5 py-2.5 text-sm text-gray-900",
+                "flex-1 resize-none rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-[13px] text-gray-900",
                 "placeholder:text-gray-400",
-                "focus:border-accent-600 focus:bg-white focus:outline-none focus:ring-1 focus:ring-accent-600",
+                "focus:border-brand-300 focus:outline-none focus:ring-2 focus:ring-brand-100",
                 "disabled:cursor-not-allowed disabled:opacity-60",
-                "transition-colors min-h-[40px] max-h-[120px]"
+                "transition-all min-h-[40px] max-h-[100px] shadow-sm"
               )}
               style={{ height: "auto" }}
               aria-label="Chat message input"
@@ -514,44 +484,45 @@ export function ChatWidget({ userRole }: ChatWidgetProps) {
               disabled={!inputValue.trim() || isStreaming}
               className={cn(
                 "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl",
-                "bg-brand-800 text-white shadow-sm",
-                "transition-all hover:bg-brand-900 active:bg-brand-950",
+                "bg-gradient-to-br from-brand-800 to-brand-900 text-white shadow-sm",
+                "transition-all hover:shadow-md hover:from-brand-700 hover:to-brand-800",
                 "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-600 focus-visible:ring-offset-2",
-                "disabled:cursor-not-allowed disabled:opacity-50"
+                "disabled:cursor-not-allowed disabled:opacity-40 disabled:shadow-none"
               )}
               aria-label="Send message"
             >
               <Send className="h-4 w-4" aria-hidden="true" />
             </button>
           </div>
-          <p className="mt-1.5 text-center text-[10px] text-gray-400">
-            {USE_AI ? "AI-generated answers · May not always be accurate" : "FreelanceHub Help Assistant"}
+          <p className="mt-1.5 text-center text-[10px] text-gray-300">
+            Press Enter to send &middot; Shift+Enter for new line
           </p>
         </div>
       </div>
 
-      {/* ── Floating trigger button ───────────────────────────────────────── */}
+      {/* Floating trigger button */}
       <button
         onClick={isOpen ? handleClose : handleOpen}
         className={cn(
-          "fixed bottom-5 right-5 z-50",
+          "fixed bottom-4 right-4 z-50 group",
           "flex h-14 w-14 items-center justify-center rounded-full",
-          "bg-brand-800 text-white shadow-lg",
-          "transition-all duration-200 hover:bg-brand-900 hover:scale-105 active:scale-95",
+          "bg-gradient-to-br from-brand-800 to-brand-950 text-white",
+          "shadow-lg shadow-brand-900/25",
+          "transition-all duration-200 hover:shadow-xl hover:shadow-brand-900/30 hover:scale-105 active:scale-95",
           "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-600 focus-visible:ring-offset-2"
         )}
         aria-label={isOpen ? "Close chat assistant" : "Open chat assistant"}
         aria-expanded={isOpen}
       >
-        {/* Unread indicator dot */}
+        {/* Unread pulse badge */}
         {hasUnread && !isOpen && (
-          <span
-            className="absolute -top-0.5 -right-0.5 h-4 w-4 rounded-full bg-red-500 ring-2 ring-white"
-            aria-label="New message"
-          />
+          <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center">
+            <span className="absolute h-full w-full animate-ping rounded-full bg-accent-500 opacity-40" />
+            <span className="relative h-3.5 w-3.5 rounded-full bg-accent-500 ring-2 ring-white" />
+          </span>
         )}
 
-        {/* Icon toggle with animation */}
+        {/* Animated icon toggle */}
         <span
           className={cn(
             "absolute transition-all duration-200",
@@ -559,7 +530,7 @@ export function ChatWidget({ userRole }: ChatWidgetProps) {
           )}
           aria-hidden="true"
         >
-          <X className="h-6 w-6" />
+          <X className="h-5 w-5" />
         </span>
         <span
           className={cn(
@@ -568,8 +539,11 @@ export function ChatWidget({ userRole }: ChatWidgetProps) {
           )}
           aria-hidden="true"
         >
-          <MessageCircle className="h-6 w-6" />
+          <MessageCircle className="h-5 w-5" />
         </span>
+
+        {/* Subtle ring */}
+        <span className="absolute inset-0 rounded-full ring-1 ring-white/10" aria-hidden="true" />
       </button>
     </>
   );

@@ -15,6 +15,7 @@ import { freelancerProfileSchema, type FreelancerProfileInput } from "@/lib/vali
 import { calculateProfileCompletion } from "@/lib/utils";
 import type { FreelancerProfile, PortfolioItem, Skill, User } from "@prisma/client";
 import type { Session } from "next-auth";
+import { track, EVENTS } from "@/lib/analytics";
 
 type ProfileWithRelations = FreelancerProfile & {
   user: Pick<User, "id" | "email" | "avatar" | "createdAt">;
@@ -92,6 +93,7 @@ export function FreelancerProfileForm({ profile, session }: FreelancerProfileFor
 
       setAvatarUrl(json.data.url);
       toast.success("Avatar updated!");
+      track(EVENTS.AVATAR_UPLOADED);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Failed to upload avatar");
     } finally {
@@ -111,6 +113,7 @@ export function FreelancerProfileForm({ profile, session }: FreelancerProfileFor
       if (!res.ok) throw new Error(json.error?.message);
 
       toast.success("Profile saved successfully!");
+      track(EVENTS.PROFILE_UPDATED, { profile_type: "freelancer", completion });
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Failed to save profile");
     }
@@ -137,6 +140,7 @@ export function FreelancerProfileForm({ profile, session }: FreelancerProfileFor
       setPortfolioForm({ title: "", description: "", url: "" });
       setShowPortfolioForm(false);
       toast.success("Portfolio item added!");
+      track(EVENTS.PORTFOLIO_ITEM_ADDED);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Failed to add portfolio item");
     } finally {
@@ -154,6 +158,7 @@ export function FreelancerProfileForm({ profile, session }: FreelancerProfileFor
 
       setPortfolioItems(portfolioItems.filter((p) => p.id !== id));
       toast.success("Portfolio item removed");
+      track(EVENTS.PORTFOLIO_ITEM_DELETED);
     } catch {
       toast.error("Failed to delete portfolio item");
     }

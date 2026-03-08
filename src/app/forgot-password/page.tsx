@@ -6,9 +6,11 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import toast from "react-hot-toast";
 import { Briefcase, ArrowLeft, CheckCircle } from "lucide-react";
+import { ScrollReveal } from "@/components/ui/scroll-reveal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { forgotPasswordSchema, type ForgotPasswordInput } from "@/lib/validations/auth";
+import { track, EVENTS } from "@/lib/analytics";
 
 export default function ForgotPasswordPage() {
   const [submitted, setSubmitted] = useState(false);
@@ -36,6 +38,7 @@ export default function ForgotPasswordPage() {
       }
 
       setSubmitted(true);
+      track(EVENTS.FORGOT_PASSWORD);
     } catch {
       toast.error("Something went wrong. Please try again.");
     }
@@ -43,7 +46,7 @@ export default function ForgotPasswordPage() {
 
   return (
     <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center bg-cream px-4 py-12">
-      <div className="w-full max-w-md">
+      <ScrollReveal><div className="w-full max-w-md">
         <div className="text-center mb-8">
           <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-800 mb-4">
             <Briefcase className="h-6 w-6 text-white" />
@@ -95,7 +98,7 @@ export default function ForgotPasswordPage() {
             Back to sign in
           </Link>
         </div>
-      </div>
+      </div></ScrollReveal>
     </div>
   );
 }

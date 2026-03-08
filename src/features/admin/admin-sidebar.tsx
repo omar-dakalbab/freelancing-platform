@@ -15,6 +15,7 @@ import {
   Menu,
   X,
 } from "lucide-react";
+import { Logomark, BRAND_NAME } from "@/components/ui/logo";
 import { cn } from "@/lib/utils";
 
 const navItems = [
@@ -33,11 +34,9 @@ function SidebarContent() {
     <>
       {/* Logo */}
       <div className="flex items-center gap-3 px-6 py-5 border-b border-gray-800">
-        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent-700" aria-hidden="true">
-          <Shield className="h-4 w-4 text-white" />
-        </div>
+        <Logomark className="h-8 w-8" variant="white" />
         <div>
-          <p className="text-sm font-bold text-white">FreelanceHub</p>
+          <p className="text-sm font-bold text-white">{BRAND_NAME}</p>
           <p className="text-xs text-gray-400">Admin Panel</p>
         </div>
       </div>

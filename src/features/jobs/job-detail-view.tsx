@@ -13,6 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar } from "@/components/ui/avatar";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { ScrollReveal } from "@/components/ui/scroll-reveal";
 import { formatCurrency, formatDate, formatRelativeTime } from "@/lib/utils";
 import type { Job, ClientProfile, Skill, User } from "@prisma/client";
 import type { Session } from "next-auth";
@@ -75,7 +76,7 @@ export function JobDetailView({ job, session, hasApplied, applicationId, isOwner
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Main content */}
         <div className="lg:col-span-2 space-y-6 order-2 lg:order-1">
-          <Card>
+          <ScrollReveal direction="left"><Card>
             <CardContent className="pt-6">
               {/* Header */}
               <div className="flex items-start justify-between gap-4 mb-4">
@@ -161,11 +162,11 @@ export function JobDetailView({ job, session, hasApplied, applicationId, isOwner
                 </div>
               )}
             </CardContent>
-          </Card>
+          </Card></ScrollReveal>
         </div>
 
         {/* Sidebar - shows first on mobile so Apply/Sign In CTA is prominent */}
-        <div className="space-y-5 order-1 lg:order-2">
+        <ScrollReveal direction="right"><div className="space-y-5 order-1 lg:order-2">
           {/* Apply button */}
           {role === "FREELANCER" && job.status === "OPEN" && (
             <Card>
@@ -272,7 +273,7 @@ export function JobDetailView({ job, session, hasApplied, applicationId, isOwner
               </div>
             </CardContent>
           </Card>
-        </div>
+        </div></ScrollReveal>
       </div>
 
       <ConfirmDialog

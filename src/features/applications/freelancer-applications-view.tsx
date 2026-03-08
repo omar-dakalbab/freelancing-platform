@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { FileText, DollarSign, Clock, ChevronDown, ChevronUp, ExternalLink } from "lucide-react";
+import { ScrollReveal } from "@/components/ui/scroll-reveal";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar } from "@/components/ui/avatar";
@@ -167,8 +168,10 @@ export function FreelancerApplicationsView({ applications }: FreelancerApplicati
                 Shortlisted & Hired ({shortlisted.length})
               </h2>
               <div className="space-y-3">
-                {shortlisted.map((app) => (
-                  <ApplicationRow key={app.id} app={app} />
+                {shortlisted.map((app, index) => (
+                  <ScrollReveal key={app.id} delay={index * 0.05}>
+                    <ApplicationRow app={app} />
+                  </ScrollReveal>
                 ))}
               </div>
             </div>
@@ -180,8 +183,10 @@ export function FreelancerApplicationsView({ applications }: FreelancerApplicati
                 Pending Review ({submitted.length})
               </h2>
               <div className="space-y-3">
-                {submitted.map((app) => (
-                  <ApplicationRow key={app.id} app={app} />
+                {submitted.map((app, index) => (
+                  <ScrollReveal key={app.id} delay={index * 0.05}>
+                    <ApplicationRow app={app} />
+                  </ScrollReveal>
                 ))}
               </div>
             </div>
@@ -193,8 +198,10 @@ export function FreelancerApplicationsView({ applications }: FreelancerApplicati
                 Not Selected ({rejected.length})
               </h2>
               <div className="space-y-3 opacity-70">
-                {rejected.map((app) => (
-                  <ApplicationRow key={app.id} app={app} />
+                {rejected.map((app, index) => (
+                  <ScrollReveal key={app.id} delay={index * 0.05}>
+                    <ApplicationRow app={app} />
+                  </ScrollReveal>
                 ))}
               </div>
             </div>

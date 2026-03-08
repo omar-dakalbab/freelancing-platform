@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
+import crypto from "crypto";
 import { prisma } from "@/lib/prisma";
 import { registerSchema } from "@/lib/validations/auth";
-import { sendWelcomeEmail } from "@/lib/email";
+import { sendVerificationEmail } from "@/lib/email";
 
 export async function POST(req: NextRequest) {
   try {
@@ -59,9 +60,21 @@ export async function POST(req: NextRequest) {
       },
     });
 
+    // Create email verification token
+    const token = crypto.randomBytes(32).toString("hex");
+    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+
+    await prisma.emailVerification.create({
+      data: {
+        userId: user.id,
+        token,
+        expiresAt,
+      },
+    });
+
     // Fire-and-forget: email failure must never break registration
-    sendWelcomeEmail(user.email, user.role as "CLIENT" | "FREELANCER").catch((err) => {
-      console.error("[POST /api/auth/register] Failed to send welcome email:", err);
+    sendVerificationEmail(user.email, token).catch((err) => {
+      console.error("[POST /api/auth/register] Failed to send verification email:", err);
     });
 
     return NextResponse.json(

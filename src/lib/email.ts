@@ -22,8 +22,8 @@ function getBrevoClient(): BrevoClient {
 
 function getSender() {
   return {
-    email: process.env.BREVO_SENDER_EMAIL ?? "noreply@freelancehub.com",
-    name: process.env.BREVO_SENDER_NAME ?? "FreelanceHub",
+    email: process.env.BREVO_SENDER_EMAIL ?? "noreply@tryletswork.com",
+    name: process.env.BREVO_SENDER_NAME ?? "LetsWork",
   };
 }
 
@@ -67,7 +67,7 @@ function emailLayout(bodyContent: string): string {
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>FreelanceHub</title>
+  <title>LetsWork</title>
 </head>
 <body style="margin:0;padding:0;background-color:#f4f4f5;font-family:Arial,Helvetica,sans-serif;">
   <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f4f4f5;padding:40px 0;">
@@ -77,7 +77,7 @@ function emailLayout(bodyContent: string): string {
           <!-- Header -->
           <tr>
             <td style="background-color:#0f172a;padding:24px 32px;border-radius:8px 8px 0 0;">
-              <span style="color:#ffffff;font-size:22px;font-weight:bold;letter-spacing:-0.5px;">FreelanceHub</span>
+              <span style="color:#ffffff;font-size:22px;font-weight:bold;letter-spacing:-0.5px;">LetsWork</span>
             </td>
           </tr>
           <!-- Body -->
@@ -90,10 +90,10 @@ function emailLayout(bodyContent: string): string {
           <tr>
             <td style="padding:24px 0 0 0;text-align:center;">
               <p style="margin:0;color:#9ca3af;font-size:12px;">
-                &copy; ${new Date().getFullYear()} FreelanceHub. All rights reserved.
+                &copy; ${new Date().getFullYear()} LetsWork. All rights reserved.
               </p>
               <p style="margin:4px 0 0 0;color:#9ca3af;font-size:12px;">
-                You are receiving this email because of activity on your FreelanceHub account.
+                You are receiving this email because of activity on your LetsWork account.
               </p>
             </td>
           </tr>
@@ -122,6 +122,94 @@ function divider(): string {
 }
 
 // ---------------------------------------------------------------------------
+// Contact form — sends message to the support inbox
+// ---------------------------------------------------------------------------
+
+export async function sendContactEmail(opts: {
+  name: string;
+  email: string;
+  subject: string;
+  message: string;
+}): Promise<void> {
+  const supportEmail = process.env.BREVO_SENDER_EMAIL ?? "noreply@tryletswork.com";
+
+  const html = emailLayout(`
+    ${h1("New contact form message")}
+    <table style="width:100%;border-collapse:collapse;margin:16px 0;">
+      <tr>
+        <td style="padding:8px 0;color:#6b7280;font-size:14px;width:100px;">From:</td>
+        <td style="padding:8px 0;color:#111827;font-size:14px;">${opts.name} (${opts.email})</td>
+      </tr>
+      <tr>
+        <td style="padding:8px 0;color:#6b7280;font-size:14px;">Subject:</td>
+        <td style="padding:8px 0;color:#111827;font-size:14px;">${opts.subject}</td>
+      </tr>
+    </table>
+    ${divider()}
+    <div style="margin:16px 0;padding:16px;background-color:#f9fafb;border-radius:6px;">
+      <p style="margin:0;color:#374151;font-size:14px;line-height:1.7;white-space:pre-wrap;">${opts.message}</p>
+    </div>
+    ${p(`Reply directly to <a href="mailto:${opts.email}" style="color:#0f172a;">${opts.email}</a> to respond.`)}
+  `);
+
+  const text = [
+    "New contact form message",
+    "",
+    `From: ${opts.name} (${opts.email})`,
+    `Subject: ${opts.subject}`,
+    "",
+    opts.message,
+  ].join("\n");
+
+  await sendEmail({
+    to: { email: supportEmail, name: "LetsWork Support" },
+    subject: `[Contact] ${opts.subject}`,
+    htmlContent: html,
+    textContent: text,
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Email verification
+// ---------------------------------------------------------------------------
+
+export async function sendVerificationEmail(
+  toEmail: string,
+  verificationToken: string
+): Promise<void> {
+  const appUrl = getAppUrl();
+  const verifyUrl = `${appUrl}/verify-email?token=${verificationToken}`;
+
+  const html = emailLayout(`
+    ${h1("Verify your email address")}
+    ${p("Thanks for signing up for LetsWork! Please verify your email address to get started.")}
+    ${p("Click the button below to verify. This link expires in <strong>24 hours</strong>.")}
+    ${primaryButton("Verify my email", verifyUrl)}
+    ${divider()}
+    ${p("If you did not create a LetsWork account, you can safely ignore this email.")}
+    ${p(`Or copy and paste this URL into your browser:<br /><a href="${verifyUrl}" style="color:#0f172a;word-break:break-all;">${verifyUrl}</a>`)}
+  `);
+
+  const text = [
+    "Verify your email address",
+    "",
+    "Thanks for signing up for LetsWork! Please verify your email address to get started.",
+    "Click the link below to verify. This link expires in 24 hours.",
+    "",
+    verifyUrl,
+    "",
+    "If you did not create a LetsWork account, you can safely ignore this email.",
+  ].join("\n");
+
+  await sendEmail({
+    to: { email: toEmail },
+    subject: "Verify your LetsWork email",
+    htmlContent: html,
+    textContent: text,
+  });
+}
+
+// ---------------------------------------------------------------------------
 // Welcome email
 // ---------------------------------------------------------------------------
 
@@ -134,7 +222,7 @@ export async function sendWelcomeEmail(
   const dashboardPath = role === "CLIENT" ? "/dashboard/client" : "/dashboard/freelancer";
 
   const html = emailLayout(`
-    ${h1("Welcome to FreelanceHub!")}
+    ${h1("Welcome to LetsWork!")}
     ${p(`Thanks for signing up as a <strong>${roleLabel}</strong>. Your account is ready to go.`)}
     ${role === "CLIENT"
       ? p("You can now post jobs, review proposals, and hire talented freelancers.")
@@ -146,7 +234,7 @@ export async function sendWelcomeEmail(
   `);
 
   const text = [
-    "Welcome to FreelanceHub!",
+    "Welcome to LetsWork!",
     "",
     `Thanks for signing up as a ${roleLabel}.`,
     role === "CLIENT"
@@ -158,7 +246,7 @@ export async function sendWelcomeEmail(
 
   await sendEmail({
     to: { email: toEmail },
-    subject: "Welcome to FreelanceHub",
+    subject: "Welcome to LetsWork",
     htmlContent: html,
     textContent: text,
   });
@@ -177,7 +265,7 @@ export async function sendPasswordResetEmail(
 
   const html = emailLayout(`
     ${h1("Reset your password")}
-    ${p("We received a request to reset the password for your FreelanceHub account.")}
+    ${p("We received a request to reset the password for your LetsWork account.")}
     ${p("Click the button below to choose a new password. This link expires in <strong>1 hour</strong>.")}
     ${primaryButton("Reset my password", resetUrl)}
     ${divider()}
@@ -188,7 +276,7 @@ export async function sendPasswordResetEmail(
   const text = [
     "Reset your password",
     "",
-    "We received a request to reset the password for your FreelanceHub account.",
+    "We received a request to reset the password for your LetsWork account.",
     "Click the link below to choose a new password. This link expires in 1 hour.",
     "",
     resetUrl,
@@ -198,7 +286,7 @@ export async function sendPasswordResetEmail(
 
   await sendEmail({
     to: { email: toEmail },
-    subject: "Reset your FreelanceHub password",
+    subject: "Reset your LetsWork password",
     htmlContent: html,
     textContent: text,
   });
@@ -455,7 +543,7 @@ export async function sendReviewReceivedEmail(opts: {
       <div style="margin-bottom:8px;">${renderStars(opts.rating)}</div>
       ${opts.comment ? `<p style="margin:0;color:#374151;font-size:15px;font-style:italic;line-height:1.6;">&ldquo;${opts.comment}&rdquo;</p>` : ""}
     </div>
-    ${p("Reviews help build your reputation on FreelanceHub. Keep up the great work!")}
+    ${p("Reviews help build your reputation on LetsWork. Keep up the great work!")}
     ${primaryButton("View your profile", profileUrl)}
   `);
 

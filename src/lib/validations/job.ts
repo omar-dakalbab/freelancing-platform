@@ -33,10 +33,10 @@ export const createJobSchema = z.object({
     error: "Please select a category",
   }),
   skills: z.array(z.string()).min(1, "At least one skill is required").max(15),
-  budgetMin: z.coerce.number().min(1).optional(),
-  budgetMax: z.coerce.number().min(1).optional(),
+  budgetMin: z.union([z.coerce.number().min(1), z.literal(""), z.nan()]).optional().transform((v) => (typeof v === "number" && !isNaN(v) ? v : undefined)),
+  budgetMax: z.union([z.coerce.number().min(1), z.literal(""), z.nan()]).optional().transform((v) => (typeof v === "number" && !isNaN(v) ? v : undefined)),
   timeline: z.enum(JOB_TIMELINES).optional(),
-  status: z.enum(["DRAFT", "OPEN"]).default("OPEN"),
+  status: z.enum(["DRAFT", "OPEN", "CLOSED", "FILLED"]).default("OPEN"),
 }).refine(
   (data) => {
     if (data.budgetMin && data.budgetMax) {
@@ -56,8 +56,8 @@ export const updateJobSchema = z.object({
   description: z.string().min(50, "Description must be at least 50 characters").max(10000).optional(),
   category: z.enum(JOB_CATEGORIES).optional(),
   skills: z.array(z.string()).min(1).max(15).optional(),
-  budgetMin: z.coerce.number().min(1).optional(),
-  budgetMax: z.coerce.number().min(1).optional(),
+  budgetMin: z.union([z.coerce.number().min(1), z.literal(""), z.nan()]).optional().transform((v) => (typeof v === "number" && !isNaN(v) ? v : undefined)),
+  budgetMax: z.union([z.coerce.number().min(1), z.literal(""), z.nan()]).optional().transform((v) => (typeof v === "number" && !isNaN(v) ? v : undefined)),
   timeline: z.enum(JOB_TIMELINES).optional(),
   status: z.enum(["DRAFT", "OPEN", "CLOSED", "FILLED"]).optional(),
 });

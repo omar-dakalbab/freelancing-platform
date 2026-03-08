@@ -13,6 +13,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { createApplicationSchema, type CreateApplicationInput } from "@/lib/validations/application";
 import { formatCurrency } from "@/lib/utils";
+import { track, EVENTS } from "@/lib/analytics";
 import type { Job, ClientProfile, Skill, User } from "@prisma/client";
 import type { Session } from "next-auth";
 
@@ -60,6 +61,7 @@ export function ApplyForm({ job, session }: ApplyFormProps) {
       if (!res.ok) throw new Error(json.error?.message || "Failed to submit application");
 
       toast.success("Application submitted successfully!");
+      track(EVENTS.APPLICATION_SUBMITTED, { job_id: data.jobId, bid_amount: data.bidAmount });
       router.push("/dashboard/applications");
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Failed to submit application");

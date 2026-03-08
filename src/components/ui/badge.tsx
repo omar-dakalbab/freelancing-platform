@@ -6,12 +6,12 @@ const badgeVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-brand-100 text-brand-800",
-        secondary: "bg-gray-100 text-gray-700",
-        success: "bg-green-100 text-green-700",
-        warning: "bg-amber-100 text-amber-700",
-        destructive: "bg-red-100 text-red-700",
-        outline: "border border-gray-300 text-gray-700",
+        default: "bg-brand-50 text-brand-700 ring-1 ring-brand-200/60",
+        secondary: "bg-gray-100 text-gray-600",
+        success: "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200/60",
+        warning: "bg-amber-50 text-amber-700 ring-1 ring-amber-200/60",
+        destructive: "bg-red-50 text-red-700 ring-1 ring-red-200/60",
+        outline: "border border-gray-200 text-gray-600",
       },
     },
     defaultVariants: {

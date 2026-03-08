@@ -17,6 +17,7 @@ async function getContractWithAccess(contractId: string, userId: string) {
         include: { user: { select: { id: true, email: true, avatar: true } } },
       },
       payments: { orderBy: { createdAt: "desc" } },
+      milestones: { orderBy: { order: "asc" } },
     },
   });
 
@@ -178,6 +179,7 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
           include: { user: { select: { id: true, email: true, avatar: true } } },
         },
         payments: { orderBy: { createdAt: "desc" } },
+        milestones: { orderBy: { order: "asc" } },
       },
     });
 

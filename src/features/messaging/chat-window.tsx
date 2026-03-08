@@ -7,6 +7,7 @@ import Link from "next/link";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { cn, formatRelativeTime } from "@/lib/utils";
+import { track, EVENTS } from "@/lib/analytics";
 import type { ConversationItem } from "./messages-layout";
 
 type Message = {
@@ -37,6 +38,7 @@ export function ChatWindow({ conversationId, conversation, currentUserId }: Chat
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
   const fetchMessages = useCallback(async (scrollToBottom = false) => {
+    if (document.hidden) return;
     try {
       const res = await fetch(`/api/conversations/${conversationId}/messages`);
       if (res.ok) {
@@ -56,9 +58,17 @@ export function ChatWindow({ conversationId, conversation, currentUserId }: Chat
   useEffect(() => {
     setLoading(true);
     fetchMessages(true);
-    // Poll every 4 seconds for new messages
-    const interval = setInterval(() => fetchMessages(false), 4000);
-    return () => clearInterval(interval);
+    const interval = setInterval(() => fetchMessages(false), 8000);
+
+    function handleVisibilityChange() {
+      if (!document.hidden) fetchMessages(false);
+    }
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
   }, [fetchMessages]);
 
   // Auto-scroll when new messages arrive
@@ -90,6 +100,7 @@ export function ChatWindow({ conversationId, conversation, currentUserId }: Chat
 
       const json = await res.json();
       setMessages((prev) => [...prev, json.data]);
+      track(EVENTS.MESSAGE_SENT, { conversation_id: conversationId });
       setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: "smooth" }), 50);
       inputRef.current?.focus();
     } catch (err) {

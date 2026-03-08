@@ -2,7 +2,15 @@ import { Suspense } from "react";
 import { JobListingPage } from "@/features/jobs/job-listing-page";
 import { CardSkeleton } from "@/components/ui/loading";
 
-export const metadata = { title: "Browse Jobs" };
+export const metadata = {
+  title: "Browse Freelance Jobs — Find Remote Work",
+  description:
+    "Browse thousands of freelance jobs across web development, design, marketing, writing, and more. Apply to projects that match your skills and start earning on LetsWork.",
+  openGraph: {
+    title: "Browse Freelance Jobs on LetsWork",
+    description: "Find your next freelance project. Thousands of remote jobs posted by verified clients.",
+  },
+};
 
 export default function JobsPage() {
   return (

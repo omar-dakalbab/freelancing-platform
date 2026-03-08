@@ -31,9 +31,37 @@ export default async function PaymentsPage() {
           },
         },
       },
+      payouts: {
+        orderBy: { createdAt: "desc" },
+        take: 1,
+      },
     },
     orderBy: { createdAt: "desc" },
   });
 
-  return <PaymentsView payments={payments} session={session} />;
+  // Fetch connect status for freelancers
+  let connectStatus = { onboarded: false, accountId: null as string | null };
+  if (role === "FREELANCER") {
+    const profile = await prisma.freelancerProfile.findUnique({
+      where: { userId },
+      select: {
+        stripeConnectOnboarded: true,
+        stripeConnectAccountId: true,
+      },
+    });
+    if (profile) {
+      connectStatus = {
+        onboarded: profile.stripeConnectOnboarded,
+        accountId: profile.stripeConnectAccountId,
+      };
+    }
+  }
+
+  return (
+    <PaymentsView
+      payments={payments}
+      session={session}
+      connectStatus={connectStatus}
+    />
+  );
 }

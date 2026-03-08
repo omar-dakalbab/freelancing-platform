@@ -1,6 +1,5 @@
 import Link from "next/link";
-import { DollarSign, Clock, Users, MapPin } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
+import { DollarSign, Clock, Users, ArrowUpRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Avatar } from "@/components/ui/avatar";
 import { formatCurrency, formatRelativeTime, truncate } from "@/lib/utils";
@@ -20,68 +19,81 @@ interface JobCardProps {
 
 export function JobCard({ job }: JobCardProps) {
   return (
-    <Link href={`/jobs/${job.id}`} className="block rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-600 focus-visible:ring-offset-2">
-      <Card className="h-full hover:shadow-md hover:border-brand-300 transition-all duration-200 cursor-pointer">
-        <CardContent className="p-5">
-          {/* Client info */}
-          <div className="flex items-center gap-2.5 mb-4">
+    <Link
+      href={`/jobs/${job.id}`}
+      className="group block rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-600 focus-visible:ring-offset-2"
+    >
+      <div className="relative h-full rounded-2xl border border-gray-200/80 bg-white p-5 sm:p-6 transition-all duration-300 hover:shadow-xl hover:shadow-gray-200/50 hover:-translate-y-1 hover:border-gray-300/80">
+        {/* Top row: avatar + category + arrow */}
+        <div className="flex items-start justify-between gap-3 mb-4">
+          <div className="flex items-center gap-3">
             <Avatar
               src={job.clientProfile.user.avatar}
               alt={job.clientProfile.companyName || job.clientProfile.user.email}
               email={job.clientProfile.user.email}
-              size="sm"
+              size="md"
             />
-            <div className="flex-1 min-w-0">
-              <p className="text-xs font-medium text-gray-600 truncate">
+            <div className="min-w-0">
+              <p className="text-sm font-semibold text-gray-700 truncate">
                 {job.clientProfile.companyName || job.clientProfile.user.email.split("@")[0]}
               </p>
               {job.clientProfile.industry && (
                 <p className="text-xs text-gray-400 truncate">{job.clientProfile.industry}</p>
               )}
             </div>
-            <Badge variant="secondary" className="shrink-0 text-xs">
-              {job.category}
-            </Badge>
           </div>
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gray-100 text-gray-400 transition-all duration-300 group-hover:bg-brand-800 group-hover:text-white">
+            <ArrowUpRight className="h-4 w-4" />
+          </div>
+        </div>
 
-          {/* Title */}
-          <h3 className="font-semibold text-gray-900 mb-2 leading-snug hover:text-brand-800 transition-colors">
-            {job.title}
-          </h3>
+        {/* Title */}
+        <h3 className="text-base font-bold text-gray-900 mb-2 leading-snug group-hover:text-brand-800 transition-colors line-clamp-2">
+          {job.title}
+        </h3>
 
-          {/* Description preview */}
-          <p className="text-sm text-gray-500 mb-4 line-clamp-2">
-            {truncate(job.description, 120)}
-          </p>
+        {/* Description preview */}
+        <p className="text-sm text-gray-500 mb-4 line-clamp-2 leading-relaxed">
+          {truncate(job.description, 120)}
+        </p>
 
-          {/* Skills */}
-          {job.skills.length > 0 && (
-            <div className="flex flex-wrap gap-1.5 mb-4">
-              {job.skills.slice(0, 4).map((skill) => (
-                <Badge key={skill.id} variant="secondary" className="text-xs">
-                  {skill.name}
-                </Badge>
-              ))}
-              {job.skills.length > 4 && (
-                <Badge variant="outline" className="text-xs">
-                  +{job.skills.length - 4}
-                </Badge>
-              )}
-            </div>
-          )}
+        {/* Skills */}
+        {job.skills.length > 0 && (
+          <div className="flex flex-wrap gap-1.5 mb-5">
+            {job.skills.slice(0, 3).map((skill) => (
+              <span
+                key={skill.id}
+                className="inline-flex items-center rounded-lg bg-gray-50 px-2.5 py-1 text-xs font-medium text-gray-600 ring-1 ring-gray-200/60"
+              >
+                {skill.name}
+              </span>
+            ))}
+            {job.skills.length > 3 && (
+              <span className="inline-flex items-center rounded-lg bg-gray-50 px-2.5 py-1 text-xs font-medium text-gray-400 ring-1 ring-gray-200/60">
+                +{job.skills.length - 3}
+              </span>
+            )}
+          </div>
+        )}
 
-          {/* Meta */}
-          <div className="flex flex-wrap items-center gap-3 text-xs text-gray-500">
-            {(job.budgetMin || job.budgetMax) && (
-              <span className="flex items-center gap-1 font-medium text-gray-700">
-                <DollarSign className="h-3.5 w-3.5 text-green-600" />
+        {/* Divider */}
+        <div className="border-t border-gray-100 pt-4">
+          {/* Budget highlight */}
+          {(job.budgetMin || job.budgetMax) && (
+            <div className="mb-3">
+              <span className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-50 px-3 py-1.5 text-sm font-bold text-emerald-700">
+                <DollarSign className="h-4 w-4" />
                 {job.budgetMin && job.budgetMax
                   ? `${formatCurrency(job.budgetMin)} – ${formatCurrency(job.budgetMax)}`
                   : job.budgetMin
                   ? `From ${formatCurrency(job.budgetMin)}`
                   : `Up to ${formatCurrency(job.budgetMax!)}`}
               </span>
-            )}
+            </div>
+          )}
+
+          {/* Meta row */}
+          <div className="flex items-center gap-3 text-xs text-gray-400">
             {job.timeline && (
               <span className="flex items-center gap-1">
                 <Clock className="h-3.5 w-3.5" />
@@ -92,10 +104,10 @@ export function JobCard({ job }: JobCardProps) {
               <Users className="h-3.5 w-3.5" />
               {job._count.applications} proposal{job._count.applications !== 1 ? "s" : ""}
             </span>
-            <span className="ml-auto text-gray-400">{formatRelativeTime(job.createdAt)}</span>
+            <span className="ml-auto">{formatRelativeTime(job.createdAt)}</span>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </Link>
   );
 }

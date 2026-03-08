@@ -7,9 +7,11 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import toast from "react-hot-toast";
 import { Briefcase, Eye, EyeOff, CheckCircle } from "lucide-react";
+import { ScrollReveal } from "@/components/ui/scroll-reveal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { resetPasswordSchema, type ResetPasswordInput } from "@/lib/validations/auth";
+import { track, EVENTS } from "@/lib/analytics";
 
 export default function ResetPasswordPage() {
   const router = useRouter();
@@ -43,6 +45,7 @@ export default function ResetPasswordPage() {
       }
 
       setSuccess(true);
+      track(EVENTS.RESET_PASSWORD);
       toast.success("Password reset successfully!");
       setTimeout(() => router.push("/login"), 2000);
     } catch {
@@ -66,7 +69,7 @@ export default function ResetPasswordPage() {
 
   return (
     <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center bg-cream px-4 py-12">
-      <div className="w-full max-w-md">
+      <ScrollReveal><div className="w-full max-w-md">
         <div className="text-center mb-8">
           <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-800 mb-4">
             <Briefcase className="h-6 w-6 text-white" />
@@ -124,7 +127,7 @@ export default function ResetPasswordPage() {
             </form>
           )}
         </div>
-      </div>
+      </div></ScrollReveal>
     </div>
   );
 }

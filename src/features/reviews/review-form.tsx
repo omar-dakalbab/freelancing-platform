@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { StarRating } from "@/components/ui/star-rating";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { track, EVENTS } from "@/lib/analytics";
 
 interface ReviewFormProps {
   contractId: string;
@@ -39,6 +40,7 @@ export function ReviewForm({ contractId, freelancerName, onSuccess }: ReviewForm
       if (!res.ok) throw new Error(json.error?.message || "Failed to submit review");
 
       toast.success("Review submitted successfully!");
+      track(EVENTS.REVIEW_SUBMITTED, { contract_id: contractId, rating });
       onSuccess();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Failed to submit review");
@@ -59,7 +61,7 @@ export function ReviewForm({ contractId, freelancerName, onSuccess }: ReviewForm
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <p className="text-sm font-medium text-gray-700 mb-2">Rating</p>
-            <StarRating value={rating} onChange={setRating} size="lg" />
+            <StarRating value={rating} onChange={(v: number) => { setRating(v); track(EVENTS.REVIEW_RATING_SET, { rating: v }); }} size="lg" />
             {rating > 0 && (
               <p className="mt-1 text-xs text-gray-500">
                 {["", "Poor", "Fair", "Good", "Very Good", "Excellent"][rating]}

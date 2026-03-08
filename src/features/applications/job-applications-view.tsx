@@ -4,11 +4,13 @@ import { useState } from "react";
 import Link from "next/link";
 import toast from "react-hot-toast";
 import { ArrowLeft, DollarSign, Clock, Star, X, CheckCircle, User, FileText, MessageSquare } from "lucide-react";
+import { ScrollReveal } from "@/components/ui/scroll-reveal";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar } from "@/components/ui/avatar";
 import { formatCurrency, formatRelativeTime } from "@/lib/utils";
+import { track, EVENTS } from "@/lib/analytics";
 import { CreateContractForm } from "@/features/contracts/create-contract-form";
 import type {
   Job, JobApplication, FreelancerProfile, PortfolioItem, Skill, User as PrismaUser, ClientProfile, Conversation
@@ -78,6 +80,9 @@ export function JobApplicationsView({ job }: JobApplicationsViewProps) {
         );
       }
       toast.success(`Application ${status.toLowerCase()}`);
+      if (status === "SHORTLISTED") track(EVENTS.APPLICATION_SHORTLISTED, { application_id: applicationId });
+      if (status === "REJECTED") track(EVENTS.APPLICATION_REJECTED, { application_id: applicationId });
+      if (status === "HIRED") track(EVENTS.APPLICATION_HIRED, { application_id: applicationId });
     } catch {
       toast.error("Failed to update application status");
     } finally {
@@ -125,13 +130,14 @@ export function JobApplicationsView({ job }: JobApplicationsViewProps) {
                 <p className="text-xs font-semibold uppercase tracking-wider text-green-600 mb-2">
                   Shortlisted ({shortlisted.length})
                 </p>
-                {shortlisted.map((app) => (
-                  <ApplicationCard
-                    key={app.id}
-                    application={app}
-                    isSelected={selectedApp?.id === app.id}
-                    onClick={() => setSelectedApp(app)}
-                  />
+                {shortlisted.map((app, index) => (
+                  <ScrollReveal key={app.id} delay={index * 0.05}>
+                    <ApplicationCard
+                      application={app}
+                      isSelected={selectedApp?.id === app.id}
+                      onClick={() => setSelectedApp(app)}
+                    />
+                  </ScrollReveal>
                 ))}
               </div>
             )}
@@ -140,13 +146,14 @@ export function JobApplicationsView({ job }: JobApplicationsViewProps) {
                 <p className="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-2">
                   New ({submitted.length})
                 </p>
-                {submitted.map((app) => (
-                  <ApplicationCard
-                    key={app.id}
-                    application={app}
-                    isSelected={selectedApp?.id === app.id}
-                    onClick={() => setSelectedApp(app)}
-                  />
+                {submitted.map((app, index) => (
+                  <ScrollReveal key={app.id} delay={index * 0.05}>
+                    <ApplicationCard
+                      application={app}
+                      isSelected={selectedApp?.id === app.id}
+                      onClick={() => setSelectedApp(app)}
+                    />
+                  </ScrollReveal>
                 ))}
               </div>
             )}
@@ -155,13 +162,14 @@ export function JobApplicationsView({ job }: JobApplicationsViewProps) {
                 <p className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-2">
                   Other ({others.length})
                 </p>
-                {others.map((app) => (
-                  <ApplicationCard
-                    key={app.id}
-                    application={app}
-                    isSelected={selectedApp?.id === app.id}
-                    onClick={() => setSelectedApp(app)}
-                  />
+                {others.map((app, index) => (
+                  <ScrollReveal key={app.id} delay={index * 0.05}>
+                    <ApplicationCard
+                      application={app}
+                      isSelected={selectedApp?.id === app.id}
+                      onClick={() => setSelectedApp(app)}
+                    />
+                  </ScrollReveal>
                 ))}
               </div>
             )}
@@ -369,7 +377,10 @@ function ApplicationCard({
 }) {
   return (
     <div
-      onClick={onClick}
+      onClick={() => {
+        track(EVENTS.APPLICATION_VIEWED, { application_id: application.id });
+        onClick();
+      }}
       className={`cursor-pointer rounded-xl border p-4 transition-all mb-2 ${
         isSelected
           ? "border-brand-400 bg-brand-50 shadow-sm"

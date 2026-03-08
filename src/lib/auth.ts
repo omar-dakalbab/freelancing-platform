@@ -30,6 +30,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         // Block suspended accounts
         if (user.suspended) return null;
 
+        // Block unverified email accounts
+        if (!user.emailVerified) return null;
+
         return {
           id: user.id,
           email: user.email,

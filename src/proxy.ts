@@ -2,7 +2,7 @@ import { auth } from "@/lib/auth";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-const PUBLIC_ROUTES = ["/", "/login", "/register", "/forgot-password", "/reset-password", "/jobs", "/freelancers"];
+const PUBLIC_ROUTES = ["/", "/login", "/register", "/forgot-password", "/reset-password", "/verify-email", "/jobs", "/freelancers", "/contact", "/about", "/help", "/terms", "/privacy", "/blog", "/careers", "/trust", "/cookies"];
 const AUTH_ROUTES = ["/login", "/register", "/forgot-password", "/reset-password"];
 const CLIENT_ROUTES = ["/dashboard/post-job", "/dashboard/my-jobs"];
 const FREELANCER_ROUTES = ["/dashboard/find-jobs", "/dashboard/applications"];
@@ -48,6 +48,6 @@ export default auth(async function middleware(req: NextRequest & { auth: { user?
 
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|public|uploads|api/).*)",
+    "/((?!_next/static|_next/image|favicon.ico|public|uploads|api/|.*\\.png$|.*\\.svg$|.*\\.jpg$|.*\\.jpeg$|.*\\.gif$|.*\\.ico$|.*\\.webp$|.*\\.woff2?$|.*\\.ttf$).*)",
   ],
 };

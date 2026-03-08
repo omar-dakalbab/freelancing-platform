@@ -23,7 +23,13 @@ export default async function ContractDetailPage({ params }: PageProps) {
       freelancerProfile: {
         include: { user: { select: { id: true, email: true, avatar: true } } },
       },
-      payments: { orderBy: { createdAt: "desc" } },
+      payments: {
+        orderBy: { createdAt: "desc" },
+        include: {
+          payouts: { orderBy: { createdAt: "desc" }, take: 1 },
+        },
+      },
+      milestones: { orderBy: { order: "asc" } },
       reviews: { select: { id: true, reviewerId: true, rating: true } },
     },
   });

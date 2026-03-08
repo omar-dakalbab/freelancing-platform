@@ -8,6 +8,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StarRating } from "@/components/ui/star-rating";
 import { Button } from "@/components/ui/button";
 import { formatCurrency, formatDate } from "@/lib/utils";
+import { FreelancerBadge } from "@/components/ui/freelancer-badge";
+import { getFreelancerBadge } from "@/lib/freelancer-badges";
 import {
   Briefcase,
   ExternalLink,
@@ -27,16 +29,34 @@ import type { Metadata } from "next";
 
 type PageProps = { params: Promise<{ id: string }> };
 
+const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://tryletswork.com";
+
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { id } = await params;
   const profile = await prisma.freelancerProfile.findUnique({
     where: { userId: id },
-    include: { user: { select: { email: true } } },
+    include: {
+      user: { select: { email: true } },
+      skills: { select: { name: true }, take: 10 },
+    },
   });
   if (!profile) return { title: "Freelancer Not Found" };
+
+  const name = profile.title || profile.user.email.split("@")[0];
+  const desc = profile.bio?.slice(0, 155).trim() || `Hire ${name} on LetsWork`;
+  const rate = profile.hourlyRate ? ` | ${formatCurrency(Number(profile.hourlyRate))}/hr` : "";
+
   return {
-    title: profile.title || profile.user.email.split("@")[0],
-    description: profile.bio?.slice(0, 160),
+    title: `${name} — Freelancer Profile`,
+    description: `${desc}${rate}`,
+    keywords: [...profile.skills.map((s) => s.name), "freelancer", "hire freelancer"],
+    openGraph: {
+      title: `${name} — Freelancer on LetsWork`,
+      description: desc,
+      url: `${SITE_URL}/freelancers/${id}`,
+      type: "profile",
+    },
+    alternates: { canonical: `${SITE_URL}/freelancers/${id}` },
   };
 }
 
@@ -69,6 +89,16 @@ export default async function FreelancerPublicProfilePage({ params }: PageProps)
 
   if (!profile || profile.user.suspended) notFound();
 
+  // Get total earnings from completed contracts
+  const earningsResult = await prisma.contract.aggregate({
+    where: {
+      freelancerProfileId: profile.id,
+      status: "COMPLETED",
+    },
+    _sum: { amount: true },
+  });
+  const totalEarnings = earningsResult._sum.amount ?? 0;
+
   const reviews = await prisma.review.findMany({
     where: { revieweeId: id },
     include: {
@@ -94,6 +124,15 @@ export default async function FreelancerPublicProfilePage({ params }: PageProps)
 
   const completedContracts = profile.contracts.length;
 
+  const badge = getFreelancerBadge({
+    completedContracts,
+    totalEarnings,
+    avgRating: averageRating,
+    reviewCount: reviews.length,
+    profileComplete: !!(profile.title && profile.bio && profile.hourlyRate),
+    skillsCount: profile.skills.length,
+  });
+
   const displayName = profile.title || profile.user.email.split("@")[0];
   const isOwnProfile = session?.user?.id === id;
 
@@ -104,7 +143,33 @@ export default async function FreelancerPublicProfilePage({ params }: PageProps)
     pct: reviews.length > 0 ? (reviews.filter((r) => r.rating === star).length / reviews.length) * 100 : 0,
   }));
 
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Person",
+    name: displayName,
+    url: `${SITE_URL}/freelancers/${id}`,
+    jobTitle: profile.title || "Freelancer",
+    description: profile.bio || undefined,
+    knowsAbout: profile.skills.map((s) => s.name),
+    ...(averageRating > 0
+      ? {
+          aggregateRating: {
+            "@type": "AggregateRating",
+            ratingValue: averageRating.toFixed(1),
+            reviewCount: reviews.length,
+            bestRating: 5,
+            worstRating: 1,
+          },
+        }
+      : {}),
+  };
+
   return (
+    <>
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+    />
     <div className="min-h-screen bg-gray-50/50">
       {/* Hero banner */}
       <div className="relative bg-gradient-to-br from-brand-800 via-brand-900 to-purple-900 overflow-hidden">
@@ -139,7 +204,10 @@ export default async function FreelancerPublicProfilePage({ params }: PageProps)
             <div className="flex-1 min-w-0">
               <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
                 <div>
-                  <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">{displayName}</h1>
+                  <div className="flex flex-wrap items-center gap-3">
+                    <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">{displayName}</h1>
+                    {badge && <FreelancerBadge tier={badge.tier!} size="md" />}
+                  </div>
                   <p className="text-gray-500 mt-1">{profile.user.email}</p>
 
                   {/* Rating + member since */}
@@ -383,6 +451,11 @@ export default async function FreelancerPublicProfilePage({ params }: PageProps)
 
           {/* Sidebar */}
           <div className="space-y-6">
+            {/* Badge card */}
+            {badge && (
+              <FreelancerBadge tier={badge.tier!} size="lg" showDescription />
+            )}
+
             {/* Availability */}
             <div className="rounded-2xl bg-white border border-gray-200 p-6">
               <div className="flex items-center gap-2 mb-4">
@@ -493,5 +566,6 @@ export default async function FreelancerPublicProfilePage({ params }: PageProps)
         </div>
       </div>
     </div>
+    </>
   );
 }
