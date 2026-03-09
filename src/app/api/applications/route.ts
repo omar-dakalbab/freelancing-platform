@@ -200,15 +200,17 @@ export async function POST(req: NextRequest) {
 
     // Notify the client that a new application has arrived
     const clientEmail = application.job.clientProfile.user.email;
-    sendApplicationReceivedEmail({
-      toEmail: clientEmail,
-      jobTitle: application.job.title,
-      jobId: application.job.id,
-      freelancerEmail: application.freelancerProfile.user.email,
-      bidAmount: application.bidAmount,
-    }).catch((err) => {
+    try {
+      await sendApplicationReceivedEmail({
+        toEmail: clientEmail,
+        jobTitle: application.job.title,
+        jobId: application.job.id,
+        freelancerEmail: application.freelancerProfile.user.email,
+        bidAmount: application.bidAmount,
+      });
+    } catch (err) {
       console.error("[POST /api/applications] Failed to send application notification:", err);
-    });
+    }
 
     return NextResponse.json(
       { data: application, message: "Application submitted successfully" },

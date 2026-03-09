@@ -183,15 +183,17 @@ export async function POST(req: NextRequest) {
     });
 
     // Notify the freelancer that a contract has been created for them
-    sendContractCreatedEmail({
-      toEmail: contract.freelancerProfile.user.email,
-      jobTitle: contract.job.title,
-      contractId: contract.id,
-      amount: contract.amount,
-      description: contract.description || undefined,
-    }).catch((err) => {
+    try {
+      await sendContractCreatedEmail({
+        toEmail: contract.freelancerProfile.user.email,
+        jobTitle: contract.job.title,
+        contractId: contract.id,
+        amount: contract.amount,
+        description: contract.description || undefined,
+      });
+    } catch (err) {
       console.error("[POST /api/contracts] Failed to send contract notification:", err);
-    });
+    }
 
     return NextResponse.json(
       { data: contract, message: "Contract created successfully" },

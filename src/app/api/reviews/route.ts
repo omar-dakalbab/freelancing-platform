@@ -184,17 +184,19 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    // Notify the freelancer that they received a review (fire-and-forget)
-    sendReviewReceivedEmail({
-      toEmail: contract.freelancerProfile.user.email,
-      jobTitle: review.contract.job.title,
-      reviewerEmail: review.reviewer.email,
-      reviewerCompany: review.reviewer.clientProfile?.companyName,
-      rating: review.rating,
-      comment: review.comment,
-    }).catch((err) => {
+    // Notify the freelancer that they received a review
+    try {
+      await sendReviewReceivedEmail({
+        toEmail: contract.freelancerProfile.user.email,
+        jobTitle: review.contract.job.title,
+        reviewerEmail: review.reviewer.email,
+        reviewerCompany: review.reviewer.clientProfile?.companyName,
+        rating: review.rating,
+        comment: review.comment,
+      });
+    } catch (err) {
       console.error("[POST /api/reviews] Failed to send review notification:", err);
-    });
+    }
 
     return NextResponse.json(
       { data: review, message: "Review submitted successfully" },

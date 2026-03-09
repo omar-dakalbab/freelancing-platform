@@ -170,13 +170,15 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
     // Notify the freelancer of the status change (SHORTLISTED, REJECTED, or HIRED)
     const newStatus = parsed.data.status;
     if (newStatus === "SHORTLISTED" || newStatus === "REJECTED" || newStatus === "HIRED") {
-      sendApplicationStatusEmail({
-        toEmail: updated.freelancerProfile.user.email,
-        jobTitle: updated.job.title,
-        status: newStatus,
-      }).catch((err) => {
+      try {
+        await sendApplicationStatusEmail({
+          toEmail: updated.freelancerProfile.user.email,
+          jobTitle: updated.job.title,
+          status: newStatus,
+        });
+      } catch (err) {
         console.error("[PATCH /api/applications/[id]] Failed to send status email:", err);
-      });
+      }
     }
 
     return NextResponse.json({ data: updated, message: "Application status updated" });

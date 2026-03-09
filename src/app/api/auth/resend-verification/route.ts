@@ -42,9 +42,11 @@ export async function POST(req: NextRequest) {
         },
       });
 
-      sendVerificationEmail(user.email, token).catch((err) => {
+      try {
+        await sendVerificationEmail(user.email, token);
+      } catch (err) {
         console.error("[POST /api/auth/resend-verification] Failed to send verification email:", err);
-      });
+      }
     }
 
     return NextResponse.json({

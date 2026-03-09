@@ -72,10 +72,12 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    // Fire-and-forget: email failure must never break registration
-    sendVerificationEmail(user.email, token).catch((err) => {
+    // Await the email so it completes before the serverless function exits
+    try {
+      await sendVerificationEmail(user.email, token);
+    } catch (err) {
       console.error("[POST /api/auth/register] Failed to send verification email:", err);
-    });
+    }
 
     return NextResponse.json(
       { data: user, message: "Account created successfully" },

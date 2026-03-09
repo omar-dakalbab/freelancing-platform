@@ -51,12 +51,14 @@ export async function GET(req: NextRequest) {
     ]);
 
     // Send welcome email now that the address is verified
-    sendWelcomeEmail(
-      verification.user.email,
-      verification.user.role as "CLIENT" | "FREELANCER"
-    ).catch((err) => {
+    try {
+      await sendWelcomeEmail(
+        verification.user.email,
+        verification.user.role as "CLIENT" | "FREELANCER"
+      );
+    } catch (err) {
       console.error("[GET /api/auth/verify-email] Failed to send welcome email:", err);
-    });
+    }
 
     return NextResponse.json({
       data: null,

@@ -46,11 +46,13 @@ export async function POST(req: NextRequest) {
         },
       });
 
-      // Send the reset email; fire-and-forget so we never reveal whether the
-      // send succeeded (prevents email enumeration via timing side-channels).
-      sendPasswordResetEmail(user.email, token).catch((err) => {
+      // Await the email but don't let failure change the response
+      // (prevents email enumeration).
+      try {
+        await sendPasswordResetEmail(user.email, token);
+      } catch (err) {
         console.error("[POST /api/auth/forgot-password] Failed to send reset email:", err);
-      });
+      }
     }
 
     return NextResponse.json({

@@ -70,15 +70,17 @@ export async function POST(req: NextRequest) {
         });
 
         // Notify the freelancer that payment has been funded
-        sendPaymentReceivedEmail({
-          toEmail: completedPayment.contract.freelancerProfile.user.email,
-          jobTitle: completedPayment.contract.job.title,
-          contractId,
-          amount: completedPayment.amount,
-          platformFee: completedPayment.platformFee,
-        }).catch((err) => {
+        try {
+          await sendPaymentReceivedEmail({
+            toEmail: completedPayment.contract.freelancerProfile.user.email,
+            jobTitle: completedPayment.contract.job.title,
+            contractId,
+            amount: completedPayment.amount,
+            platformFee: completedPayment.platformFee,
+          });
+        } catch (err) {
           console.error("[Stripe webhook] Failed to send payment notification:", err);
-        });
+        }
 
         console.log(`[Stripe webhook] Payment ${paymentId} completed for contract ${contractId}`);
         break;

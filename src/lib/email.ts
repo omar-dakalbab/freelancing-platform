@@ -1,10 +1,9 @@
 /**
  * Email service using Brevo (formerly Sendinblue) transactional email API.
  *
- * All send functions are designed to be called fire-and-forget:
- *   sendWelcomeEmail(email, name).catch(console.error);
- *
- * Email failures are always logged but never thrown, so callers never break.
+ * All send functions should be awaited inside a try/catch so they complete
+ * before the serverless function exits. Email failures are logged but should
+ * not break the caller's main flow.
  */
 import { BrevoClient } from "@getbrevo/brevo";
 
