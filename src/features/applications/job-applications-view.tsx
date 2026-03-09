@@ -9,7 +9,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar } from "@/components/ui/avatar";
-import { formatCurrency, formatRelativeTime } from "@/lib/utils";
+import { formatCurrency } from "@/lib/utils";
+import { TimeAgo } from "@/components/ui/time-ago";
 import { track, EVENTS } from "@/lib/analytics";
 import { CreateContractForm } from "@/features/contracts/create-contract-form";
 import type {
@@ -231,7 +232,7 @@ export function JobApplicationsView({ job }: JobApplicationsViewProps) {
                     )}
                     <div className="col-span-2 text-center sm:text-left sm:border-l sm:border-gray-200 sm:pl-6 sm:ml-auto">
                       <p className="text-sm font-medium text-gray-600">
-                        {formatRelativeTime(selectedApp.createdAt)}
+                        <TimeAgo date={selectedApp.createdAt} />
                       </p>
                       <p className="text-xs text-gray-500">Applied</p>
                     </div>
@@ -412,9 +413,7 @@ function ApplicationCard({
             <span className="text-xs font-semibold text-gray-700">
               {formatCurrency(application.bidAmount)}
             </span>
-            <span className="text-xs text-gray-400">
-              {formatRelativeTime(application.createdAt)}
-            </span>
+            <TimeAgo date={application.createdAt} className="text-xs text-gray-400" />
           </div>
         </div>
         <Badge variant={statusConfig[application.status]?.variant || "secondary"} className="text-xs shrink-0">

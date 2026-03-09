@@ -1,7 +1,8 @@
 "use client";
 
 import { Avatar } from "@/components/ui/avatar";
-import { cn, formatRelativeTime } from "@/lib/utils";
+import { cn } from "@/lib/utils";
+import { TimeAgo } from "@/components/ui/time-ago";
 import { MessageSquare } from "lucide-react";
 import type { ConversationItem } from "./messages-layout";
 
@@ -109,9 +110,7 @@ export function ConversationList({
                           {displayName}
                         </p>
                         {lastMessage && (
-                          <span className="text-xs text-gray-400 shrink-0">
-                            {formatRelativeTime(lastMessage.createdAt)}
-                          </span>
+                          <TimeAgo date={lastMessage.createdAt} className="text-xs text-gray-400 shrink-0" />
                         )}
                       </div>
                       <p className="text-xs text-gray-500 truncate mt-0.5">

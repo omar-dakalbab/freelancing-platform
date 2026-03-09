@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { UserActionModal } from "./user-action-modal";
-import { formatRelativeTime } from "@/lib/utils";
+import { TimeAgo } from "@/components/ui/time-ago";
 import { Search, ExternalLink, UserX, UserCheck } from "lucide-react";
 
 interface UserRow {
@@ -152,7 +152,7 @@ export function AdminUsersView() {
                 </div>
                 <p className="text-xs text-gray-500 mt-0.5">{user.email}</p>
                 <p className="text-xs text-gray-400 mt-0.5">
-                  Joined {formatRelativeTime(user.createdAt)}
+                  Joined <TimeAgo date={user.createdAt} />
                 </p>
               </div>
               <div className="flex items-center gap-2 shrink-0">

@@ -8,7 +8,8 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { formatCurrency, formatRelativeTime, truncate } from "@/lib/utils";
+import { formatCurrency, truncate } from "@/lib/utils";
+import { TimeAgo } from "@/components/ui/time-ago";
 import type { JobApplication, Job, ClientProfile, Skill, User } from "@prisma/client";
 
 type ApplicationWithJob = JobApplication & {
@@ -81,7 +82,7 @@ export function FreelancerApplicationsView({ applications }: FreelancerApplicati
                 </span>
                 <span className="flex items-center gap-1">
                   <Clock className="h-3 w-3" />
-                  {formatRelativeTime(app.createdAt)}
+                  <TimeAgo date={app.createdAt} />
                 </span>
               </div>
             </div>

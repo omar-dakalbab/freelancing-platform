@@ -14,7 +14,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar } from "@/components/ui/avatar";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { ScrollReveal } from "@/components/ui/scroll-reveal";
-import { formatCurrency, formatDate, formatRelativeTime } from "@/lib/utils";
+import { formatCurrency, formatDate } from "@/lib/utils";
+import { TimeAgo } from "@/components/ui/time-ago";
 import type { Job, ClientProfile, Skill, User } from "@prisma/client";
 import type { Session } from "next-auth";
 
@@ -89,7 +90,7 @@ export function JobDetailView({ job, session, hasApplied, applicationId, isOwner
                   </div>
                   <h1 className="text-2xl font-bold text-gray-900">{job.title}</h1>
                   <p className="mt-1 text-sm text-gray-500">
-                    Posted {formatRelativeTime(job.createdAt)}
+                    Posted <TimeAgo date={job.createdAt} />
                   </p>
                 </div>
                 {isOwner && (

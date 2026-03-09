@@ -6,7 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar } from "@/components/ui/avatar";
 import { ErrorBoundary } from "@/components/ui/error-boundary";
-import { formatCurrency, formatRelativeTime } from "@/lib/utils";
+import { formatCurrency } from "@/lib/utils";
+import { TimeAgo } from "@/components/ui/time-ago";
 import type { ClientProfile, Job, Skill, User } from "@prisma/client";
 import type { Session } from "next-auth";
 
@@ -184,7 +185,7 @@ export function ClientDashboard({ profile, session, stats }: ClientDashboardProp
                       </span>
                       <span className="flex items-center gap-1">
                         <Clock className="h-3 w-3" />
-                        {formatRelativeTime(job.createdAt)}
+                        <TimeAgo date={job.createdAt} />
                       </span>
                       {job.budgetMin && job.budgetMax && (
                         <span>

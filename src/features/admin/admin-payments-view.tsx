@@ -4,7 +4,8 @@ import { useState, useEffect, useCallback } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { formatCurrency, formatRelativeTime } from "@/lib/utils";
+import { formatCurrency } from "@/lib/utils";
+import { TimeAgo } from "@/components/ui/time-ago";
 import { DollarSign, TrendingUp } from "lucide-react";
 
 interface PaymentRow {
@@ -144,7 +145,7 @@ export function AdminPaymentsView() {
                 <p className="text-xs text-gray-400 mt-0.5">
                   {payment.contract.clientProfile.companyName || payment.contract.clientProfile.user.email.split("@")[0]}{" "}
                   → {payment.contract.freelancerProfile.title || payment.contract.freelancerProfile.user.email.split("@")[0]} •{" "}
-                  {formatRelativeTime(payment.createdAt)}
+                  <TimeAgo date={payment.createdAt} />
                 </p>
               </div>
             </div>

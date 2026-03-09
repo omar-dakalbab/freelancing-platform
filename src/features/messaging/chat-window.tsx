@@ -6,7 +6,8 @@ import { Send, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { cn, formatRelativeTime } from "@/lib/utils";
+import { cn } from "@/lib/utils";
+import { TimeAgo } from "@/components/ui/time-ago";
 import { track, EVENTS } from "@/lib/analytics";
 import type { ConversationItem } from "./messages-layout";
 
@@ -247,7 +248,7 @@ export function ChatWindow({ conversationId, conversation, currentUserId }: Chat
                     </div>
                     {showTime && (
                       <span className="mt-1 text-xs text-gray-400">
-                        {formatRelativeTime(msg.createdAt)}
+                        <TimeAgo date={msg.createdAt} />
                         {isMine && msg.readAt && (
                           <span className="ml-1 text-brand-600">· Read</span>
                         )}

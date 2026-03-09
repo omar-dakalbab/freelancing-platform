@@ -25,7 +25,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar } from "@/components/ui/avatar";
 import { ReviewForm } from "@/features/reviews/review-form";
 import { ScrollReveal } from "@/components/ui/scroll-reveal";
-import { formatCurrency, formatDate, formatRelativeTime } from "@/lib/utils";
+import { formatCurrency, formatDate } from "@/lib/utils";
+import { TimeAgo } from "@/components/ui/time-ago";
 import { cn } from "@/lib/utils";
 import { track, EVENTS } from "@/lib/analytics";
 import type { Session } from "next-auth";
@@ -627,9 +628,7 @@ export function ContractDetailView({
                             {formatCurrency(payment.amount - payment.platformFee)}
                           </p>
                           <div className="flex items-center gap-2 mt-1">
-                            <p className="text-xs text-gray-400">
-                              {formatRelativeTime(payment.createdAt)}
-                            </p>
+                            <TimeAgo date={payment.createdAt} className="text-xs text-gray-400" />
                             {payment.status === "COMPLETED" && isFreelancer && (() => {
                               const latestPayout = payment.payouts?.[0];
                               if (latestPayout?.status === "COMPLETED") {

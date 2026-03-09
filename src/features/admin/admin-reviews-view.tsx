@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { StarRating } from "@/components/ui/star-rating";
 import { Textarea } from "@/components/ui/textarea";
-import { formatRelativeTime } from "@/lib/utils";
+import { TimeAgo } from "@/components/ui/time-ago";
 import { Trash2 } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -110,7 +110,7 @@ export function AdminReviewsView() {
                       <p className="text-xs text-gray-400">
                         reviewed {review.reviewee.email.split("@")[0]} •{" "}
                         {review.contract.job.title} •{" "}
-                        {formatRelativeTime(review.createdAt)}
+                        <TimeAgo date={review.createdAt} />
                       </p>
                     </div>
                     <Button

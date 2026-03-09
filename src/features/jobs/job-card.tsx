@@ -2,7 +2,8 @@ import Link from "next/link";
 import { DollarSign, Clock, Users, ArrowUpRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Avatar } from "@/components/ui/avatar";
-import { formatCurrency, formatRelativeTime, truncate } from "@/lib/utils";
+import { formatCurrency, truncate } from "@/lib/utils";
+import { TimeAgo } from "@/components/ui/time-ago";
 import type { Job, ClientProfile, Skill, User } from "@prisma/client";
 
 type JobWithRelations = Job & {
@@ -104,7 +105,7 @@ export function JobCard({ job }: JobCardProps) {
               <Users className="h-3.5 w-3.5" />
               {job._count.applications} proposal{job._count.applications !== 1 ? "s" : ""}
             </span>
-            <span className="ml-auto">{formatRelativeTime(job.createdAt)}</span>
+            <TimeAgo date={job.createdAt} className="ml-auto" />
           </div>
         </div>
       </div>

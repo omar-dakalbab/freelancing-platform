@@ -7,7 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
-import { formatCurrency, formatRelativeTime } from "@/lib/utils";
+import { formatCurrency } from "@/lib/utils";
+import { TimeAgo } from "@/components/ui/time-ago";
 import { Search, ExternalLink, Trash2, RotateCcw } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -178,7 +179,7 @@ export function AdminJobsView() {
                 </p>
                 <p className="text-xs text-gray-400 mt-0.5">
                   By {job.clientProfile.companyName || job.clientProfile.user.email} •{" "}
-                  {formatRelativeTime(job.createdAt)}
+                  <TimeAgo date={job.createdAt} />
                 </p>
               </div>
               <div className="flex items-center gap-2 shrink-0">

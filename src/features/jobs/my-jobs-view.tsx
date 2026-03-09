@@ -10,7 +10,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
-import { formatCurrency, formatRelativeTime } from "@/lib/utils";
+import { formatCurrency } from "@/lib/utils";
+import { TimeAgo } from "@/components/ui/time-ago";
 import type { Job, Skill } from "@prisma/client";
 
 type JobWithRelations = Job & {
@@ -133,7 +134,7 @@ export function MyJobsView({ jobs: initialJobs }: MyJobsViewProps) {
                           {job.timeline}
                         </span>
                       )}
-                      <span className="text-gray-400">{formatRelativeTime(job.createdAt)}</span>
+                      <TimeAgo date={job.createdAt} className="text-gray-400" />
                     </div>
 
                     {job.skills.length > 0 && (

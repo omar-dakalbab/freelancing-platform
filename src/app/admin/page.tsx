@@ -5,7 +5,8 @@ import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar } from "@/components/ui/avatar";
-import { formatCurrency, formatRelativeTime } from "@/lib/utils";
+import { formatCurrency } from "@/lib/utils";
+import { TimeAgo } from "@/components/ui/time-ago";
 import {
   Users,
   Briefcase,
@@ -243,7 +244,7 @@ export default async function AdminOverviewPage() {
                       {action.reason && (
                         <p className="text-xs text-gray-400 truncate">{action.reason}</p>
                       )}
-                      <p className="text-xs text-gray-400">{formatRelativeTime(action.createdAt)}</p>
+                      <TimeAgo date={action.createdAt} className="text-xs text-gray-400" />
                     </div>
                   </div>
                 ))}

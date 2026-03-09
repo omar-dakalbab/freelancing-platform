@@ -5,7 +5,8 @@ import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { formatCurrency, formatRelativeTime } from "@/lib/utils";
+import { formatCurrency } from "@/lib/utils";
+import { TimeAgo } from "@/components/ui/time-ago";
 import { ExternalLink } from "lucide-react";
 
 interface ContractRow {
@@ -108,7 +109,7 @@ export function AdminContractsView() {
                   Client: {contract.clientProfile.companyName || contract.clientProfile.user.email.split("@")[0]} •{" "}
                   Freelancer: {contract.freelancerProfile.title || contract.freelancerProfile.user.email.split("@")[0]}
                 </p>
-                <p className="text-xs text-gray-400 mt-0.5">{formatRelativeTime(contract.createdAt)}</p>
+                <TimeAgo date={contract.createdAt} className="text-xs text-gray-400 mt-0.5" />
               </div>
               <Link href={`/dashboard/contracts/${contract.id}`} target="_blank">
                 <Button variant="ghost" size="icon-sm">
