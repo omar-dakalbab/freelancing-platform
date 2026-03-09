@@ -55,9 +55,12 @@ export default async function DashboardPage() {
       }),
     ]);
 
+    // Serialize to plain objects to avoid Prisma object serialization issues
+    const serializedProfile = profile ? JSON.parse(JSON.stringify(profile)) : null;
+
     return (
       <ClientDashboard
-        profile={profile}
+        profile={serializedProfile}
         session={session}
         stats={{
           totalJobs: profile?.jobs.length ?? 0,
@@ -115,9 +118,12 @@ export default async function DashboardPage() {
       }),
     ]);
 
+    // Serialize to plain objects to avoid Prisma object serialization issues
+    const serializedProfile = profile ? JSON.parse(JSON.stringify(profile)) : null;
+
     return (
       <FreelancerDashboard
-        profile={profile}
+        profile={serializedProfile}
         session={session}
         stats={{
           totalApplications: profile?.applications.length ?? 0,

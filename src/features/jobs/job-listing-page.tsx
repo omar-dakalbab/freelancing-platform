@@ -109,7 +109,7 @@ export function JobListingPage() {
 
       {/* Search bar */}
       <form onSubmit={handleSearch} className="mb-8">
-        <div className="flex gap-3">
+        <div className="flex flex-col gap-3 sm:flex-row">
           <div className="flex-1 relative">
             <label htmlFor="job-search" className="sr-only">Search jobs</label>
             <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" aria-hidden="true" />
@@ -122,26 +122,28 @@ export function JobListingPage() {
               className="w-full h-12 pl-11 pr-4 rounded-xl border border-gray-200 bg-white text-sm text-gray-900 placeholder:text-gray-400 focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-100 transition-all"
             />
           </div>
-          <Button type="submit" size="lg" className="h-12 rounded-xl px-6">
-            Search
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            size="lg"
-            onClick={() => setShowFilters(!showFilters)}
-            className="h-12 rounded-xl gap-2"
-            aria-expanded={showFilters}
-            aria-controls="filter-panel"
-          >
-            <Filter className="h-4 w-4" aria-hidden="true" />
-            Filters
-            {hasActiveFilters && (
-              <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-accent-600 px-1 text-xs font-medium text-white" aria-label="Active filters">
-                {[category, budgetMin || budgetMax ? "budget" : ""].filter(Boolean).length}
-              </span>
-            )}
-          </Button>
+          <div className="flex gap-3">
+            <Button type="submit" size="lg" className="h-12 rounded-xl px-6 flex-1 sm:flex-none">
+              Search
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="lg"
+              onClick={() => setShowFilters(!showFilters)}
+              className="h-12 rounded-xl gap-2 flex-1 sm:flex-none"
+              aria-expanded={showFilters}
+              aria-controls="filter-panel"
+            >
+              <Filter className="h-4 w-4" aria-hidden="true" />
+              Filters
+              {hasActiveFilters && (
+                <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-accent-600 px-1 text-xs font-medium text-white" aria-label="Active filters">
+                  {[category, budgetMin || budgetMax ? "budget" : ""].filter(Boolean).length}
+                </span>
+              )}
+            </Button>
+          </div>
         </div>
       </form>
 

@@ -79,7 +79,7 @@ export default function FreelancersPage() {
 
       {/* Search */}
       <form onSubmit={handleSearch} className="mb-8">
-        <div className="flex gap-3">
+        <div className="flex flex-col gap-3 sm:flex-row">
           <div className="flex-1 relative">
             <label htmlFor="freelancer-search" className="sr-only">Search freelancers</label>
             <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" aria-hidden="true" />
@@ -100,7 +100,7 @@ export default function FreelancersPage() {
               value={skill}
               onChange={(e) => { setSkill(e.target.value); setPage(1); }}
               placeholder="Filter by skill..."
-              className="h-12 w-48 px-4 rounded-xl border border-gray-200 bg-white text-sm text-gray-900 placeholder:text-gray-400 focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-100 transition-all"
+              className="h-12 w-full sm:w-48 px-4 rounded-xl border border-gray-200 bg-white text-sm text-gray-900 placeholder:text-gray-400 focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-100 transition-all"
             />
           </div>
           <Button type="submit" size="lg" className="h-12 rounded-xl px-6">

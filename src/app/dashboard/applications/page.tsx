@@ -34,5 +34,8 @@ export default async function ApplicationsPage() {
     },
   });
 
-  return <FreelancerApplicationsView applications={applications} />;
+  // Serialize to plain objects to avoid Prisma object serialization issues
+  const serializedApplications = JSON.parse(JSON.stringify(applications));
+
+  return <FreelancerApplicationsView applications={serializedApplications} />;
 }

@@ -19,7 +19,8 @@ export default async function ProfilePage() {
         user: { select: { id: true, email: true, avatar: true, createdAt: true } },
       },
     });
-    return <ClientProfileForm profile={profile} session={session} />;
+    // Serialize to plain objects to avoid Prisma object serialization issues
+    return <ClientProfileForm profile={profile ? JSON.parse(JSON.stringify(profile)) : null} session={session} />;
   }
 
   if (role === "FREELANCER") {
@@ -31,7 +32,8 @@ export default async function ProfilePage() {
         portfolioItems: { orderBy: { createdAt: "desc" } },
       },
     });
-    return <FreelancerProfileForm profile={profile} session={session} />;
+    // Serialize to plain objects to avoid Prisma object serialization issues
+    return <FreelancerProfileForm profile={profile ? JSON.parse(JSON.stringify(profile)) : null} session={session} />;
   }
 
   redirect("/dashboard");

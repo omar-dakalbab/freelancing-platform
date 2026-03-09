@@ -132,7 +132,7 @@ export default async function JobDetailPage({ params }: PageProps) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       <JobDetailView
-        job={job}
+        job={JSON.parse(JSON.stringify(job))}
         session={session}
         hasApplied={hasApplied}
         applicationId={applicationId}

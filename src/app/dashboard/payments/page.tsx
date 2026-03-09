@@ -57,9 +57,12 @@ export default async function PaymentsPage() {
     }
   }
 
+  // Serialize to plain objects to avoid Prisma object serialization issues
+  const serializedPayments = JSON.parse(JSON.stringify(payments));
+
   return (
     <PaymentsView
-      payments={payments}
+      payments={serializedPayments}
       session={session}
       connectStatus={connectStatus}
     />

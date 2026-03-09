@@ -193,7 +193,7 @@ export function PaymentsView({ payments, session, connectStatus }: PaymentsViewP
 
       {/* Summary cards */}
       {payments.length > 0 && (
-        <div className={`grid grid-cols-1 gap-4 mb-8 ${isFreelancer ? "sm:grid-cols-4" : "sm:grid-cols-3"}`}>
+        <div className={`grid grid-cols-2 gap-4 mb-8 ${isFreelancer ? "md:grid-cols-4" : "md:grid-cols-3"}`}>
           <Card>
             <CardContent className="flex items-center gap-4 pt-6">
               <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-green-100">
@@ -281,10 +281,10 @@ export function PaymentsView({ payments, session, connectStatus }: PaymentsViewP
             return (
               <ScrollReveal key={payment.id} delay={index * 0.05}>
               <Link href={`/dashboard/contracts/${payment.contract.id}`} className="block rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-600 focus-visible:ring-offset-2">
-                <div className="flex items-center justify-between p-5 rounded-xl border border-gray-200 bg-white hover:border-brand-300 hover:shadow-sm transition-all cursor-pointer">
-                  <div className="flex items-center gap-4 flex-1 min-w-0">
+                <div className="p-4 sm:p-5 rounded-xl border border-gray-200 bg-white hover:border-brand-300 hover:shadow-sm transition-all cursor-pointer">
+                  <div className="flex items-start gap-3 sm:items-center sm:gap-4">
                     <div
-                      className={`h-11 w-11 rounded-full flex items-center justify-center shrink-0 ${
+                      className={`h-10 w-10 sm:h-11 sm:w-11 rounded-full flex items-center justify-center shrink-0 ${
                         payment.status === "COMPLETED"
                           ? "bg-green-100"
                           : payment.status === "FAILED"
@@ -293,7 +293,7 @@ export function PaymentsView({ payments, session, connectStatus }: PaymentsViewP
                       }`}
                     >
                       <DollarSign
-                        className={`h-5 w-5 ${
+                        className={`h-4 w-4 sm:h-5 sm:w-5 ${
                           payment.status === "COMPLETED"
                             ? "text-green-600"
                             : payment.status === "FAILED"
@@ -316,17 +316,46 @@ export function PaymentsView({ payments, session, connectStatus }: PaymentsViewP
                           getPayoutBadge(payment, payment.contract.status)
                         )}
                       </div>
-                      <div className="flex items-center gap-3 text-xs text-gray-500 mt-0.5">
+                      <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-gray-500 mt-0.5">
                         <span>
                           {isClient ? "Paid to" : "From"}: {otherParty.user.email.split("@")[0]}
                         </span>
                         <span>{formatDate(payment.createdAt)}</span>
-                        <span>Fee: {formatCurrency(payment.platformFee)}</span>
+                        <span className="hidden sm:inline">Fee: {formatCurrency(payment.platformFee)}</span>
                       </div>
                     </div>
+                    <div className="hidden sm:flex items-center gap-3 shrink-0 ml-4">
+                      <div className="text-right">
+                        <p className="text-sm font-bold text-gray-900">
+                          {formatCurrency(payment.amount)}
+                        </p>
+                        {isFreelancer && payment.status === "COMPLETED" && (
+                          <p className="text-xs text-green-600">
+                            Net: {formatCurrency(payment.amount - payment.platformFee)}
+                          </p>
+                        )}
+                      </div>
+                      {canRequestPayout ? (
+                        <Button
+                          size="sm"
+                          onClick={(e) => handleRequestPayout(payment.id, e)}
+                          loading={payoutLoadingId === payment.id}
+                          disabled={payoutLoadingId !== null}
+                        >
+                          {payoutLoadingId === payment.id ? (
+                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                          ) : (
+                            "Withdraw"
+                          )}
+                        </Button>
+                      ) : (
+                        <ArrowRight className="h-4 w-4 text-gray-400" />
+                      )}
+                    </div>
                   </div>
-                  <div className="flex items-center gap-3 shrink-0 ml-4">
-                    <div className="text-right">
+                  {/* Mobile amount + action row */}
+                  <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100 sm:hidden">
+                    <div>
                       <p className="text-sm font-bold text-gray-900">
                         {formatCurrency(payment.amount)}
                       </p>

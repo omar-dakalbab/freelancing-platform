@@ -24,5 +24,8 @@ export default async function EditJobPage({ params }: PageProps) {
   if (!job) notFound();
   if (job.clientProfile.userId !== session.user.id) redirect("/dashboard/my-jobs");
 
-  return <JobForm mode="edit" job={job} />;
+  // Serialize to plain objects to avoid Prisma object serialization issues
+  const serializedJob = JSON.parse(JSON.stringify(job));
+
+  return <JobForm mode="edit" job={serializedJob} />;
 }

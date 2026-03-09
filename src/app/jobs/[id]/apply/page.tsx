@@ -47,5 +47,6 @@ export default async function ApplyPage({ params }: PageProps) {
     if (existing) redirect(`/jobs/${id}`);
   }
 
-  return <ApplyForm job={job} session={session} />;
+  // Serialize to plain objects to avoid Prisma object serialization issues
+  return <ApplyForm job={JSON.parse(JSON.stringify(job))} session={session} />;
 }

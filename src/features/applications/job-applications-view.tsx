@@ -123,8 +123,8 @@ export function JobApplicationsView({ job }: JobApplicationsViewProps) {
         </div>
       ) : (
         <div className="grid gap-6 lg:grid-cols-5">
-          {/* Applications list */}
-          <div className="lg:col-span-2 space-y-3">
+          {/* Applications list - hidden on mobile when viewing detail */}
+          <div className={`lg:col-span-2 space-y-3 ${selectedApp ? "hidden lg:block" : ""}`}>
             {shortlisted.length > 0 && (
               <div>
                 <p className="text-xs font-semibold uppercase tracking-wider text-green-600 mb-2">
@@ -176,50 +176,60 @@ export function JobApplicationsView({ job }: JobApplicationsViewProps) {
           </div>
 
           {/* Application detail */}
-          <div className="lg:col-span-3">
+          <div className={`lg:col-span-3 ${!selectedApp ? "hidden lg:block" : ""}`}>
             {!selectedApp ? (
               <div className="py-20 text-center rounded-2xl border border-dashed border-gray-200">
                 <p className="text-gray-400">Select an application to view details</p>
               </div>
             ) : (
               <Card>
-                <CardHeader className="flex flex-row items-start justify-between gap-4">
-                  <div className="flex items-center gap-3">
-                    <Avatar
-                      src={selectedApp.freelancerProfile.user.avatar}
-                      alt={selectedApp.freelancerProfile.user.email}
-                      email={selectedApp.freelancerProfile.user.email}
-                      size="lg"
-                    />
-                    <div>
-                      <p className="font-semibold text-gray-900">
-                        {selectedApp.freelancerProfile.title || selectedApp.freelancerProfile.user.email.split("@")[0]}
-                      </p>
-                      <p className="text-sm text-gray-500">{selectedApp.freelancerProfile.user.email}</p>
+                <CardHeader className="space-y-3">
+                  {/* Mobile back button */}
+                  <button
+                    onClick={() => setSelectedApp(null)}
+                    className="lg:hidden inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700"
+                  >
+                    <ArrowLeft className="h-4 w-4" />
+                    Back to applications
+                  </button>
+                  <div className="flex flex-row items-start justify-between gap-4">
+                    <div className="flex items-center gap-3">
+                      <Avatar
+                        src={selectedApp.freelancerProfile.user.avatar}
+                        alt={selectedApp.freelancerProfile.user.email}
+                        email={selectedApp.freelancerProfile.user.email}
+                        size="lg"
+                      />
+                      <div>
+                        <p className="font-semibold text-gray-900">
+                          {selectedApp.freelancerProfile.title || selectedApp.freelancerProfile.user.email.split("@")[0]}
+                        </p>
+                        <p className="text-sm text-gray-500">{selectedApp.freelancerProfile.user.email}</p>
+                      </div>
                     </div>
+                    <Badge variant={statusConfig[selectedApp.status]?.variant || "secondary"}>
+                      {statusConfig[selectedApp.status]?.label || selectedApp.status}
+                    </Badge>
                   </div>
-                  <Badge variant={statusConfig[selectedApp.status]?.variant || "secondary"}>
-                    {statusConfig[selectedApp.status]?.label || selectedApp.status}
-                  </Badge>
                 </CardHeader>
                 <CardContent className="space-y-5">
                   {/* Bid */}
-                  <div className="flex items-center gap-6 p-4 rounded-xl bg-gray-50">
-                    <div className="text-center">
+                  <div className="grid grid-cols-2 gap-4 p-4 rounded-xl bg-gray-50 sm:flex sm:items-center sm:gap-6">
+                    <div className="text-center sm:text-left">
                       <p className="text-2xl font-bold text-gray-900">
                         {formatCurrency(selectedApp.bidAmount)}
                       </p>
                       <p className="text-xs text-gray-500">Proposed Bid</p>
                     </div>
                     {selectedApp.freelancerProfile.hourlyRate && (
-                      <div className="text-center border-l border-gray-200 pl-6">
+                      <div className="text-center sm:text-left sm:border-l sm:border-gray-200 sm:pl-6">
                         <p className="text-lg font-semibold text-gray-700">
                           {formatCurrency(selectedApp.freelancerProfile.hourlyRate)}/hr
                         </p>
                         <p className="text-xs text-gray-500">Hourly Rate</p>
                       </div>
                     )}
-                    <div className="text-center border-l border-gray-200 pl-6 ml-auto">
+                    <div className="col-span-2 text-center sm:text-left sm:border-l sm:border-gray-200 sm:pl-6 sm:ml-auto">
                       <p className="text-sm font-medium text-gray-600">
                         {formatRelativeTime(selectedApp.createdAt)}
                       </p>

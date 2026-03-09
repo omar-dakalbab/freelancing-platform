@@ -135,8 +135,8 @@ function ContractCard({
 
   return (
     <Link href={`/dashboard/contracts/${contract.id}`} className="block rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-600 focus-visible:ring-offset-2">
-      <div className="flex items-center justify-between p-4 rounded-xl border border-gray-200 bg-white hover:border-brand-300 hover:shadow-sm transition-all cursor-pointer">
-        <div className="flex items-center gap-4 flex-1 min-w-0">
+      <div className="p-4 rounded-xl border border-gray-200 bg-white hover:border-brand-300 hover:shadow-sm transition-all cursor-pointer">
+        <div className="flex items-start gap-3 sm:items-center sm:gap-4">
           <Avatar
             src={otherParty.user.avatar}
             alt={displayName}
@@ -155,7 +155,7 @@ function ContractCard({
                 </Badge>
               )}
             </div>
-            <div className="flex items-center gap-3 text-xs text-gray-500 mt-1">
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-gray-500 mt-1">
               <span>
                 {isClient ? "Freelancer" : "Client"}: {displayName}
               </span>
@@ -165,10 +165,10 @@ function ContractCard({
               </span>
             </div>
           </div>
-        </div>
-        <div className="flex items-center gap-3 shrink-0 ml-4">
-          <p className="text-sm font-bold text-gray-900">{formatCurrency(contract.amount)}</p>
-          <ArrowRight className="h-4 w-4 text-gray-400" />
+          <div className="flex items-center gap-2 shrink-0">
+            <p className="text-sm font-bold text-gray-900">{formatCurrency(contract.amount)}</p>
+            <ArrowRight className="h-4 w-4 text-gray-400 hidden sm:block" />
+          </div>
         </div>
       </div>
     </Link>

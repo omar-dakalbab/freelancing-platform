@@ -42,9 +42,12 @@ export default async function ContractDetailPage({ params }: PageProps) {
 
   if (!isClient && !isFreelancer && session.user.role !== "ADMIN") redirect("/dashboard");
 
+  // Serialize to plain objects to avoid Prisma object serialization issues
+  const serializedContract = JSON.parse(JSON.stringify(contract));
+
   return (
     <ContractDetailView
-      contract={contract}
+      contract={serializedContract}
       isClient={isClient}
       isFreelancer={isFreelancer}
       session={session}

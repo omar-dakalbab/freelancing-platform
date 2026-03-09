@@ -25,5 +25,8 @@ export default async function MyJobsPage() {
     },
   });
 
-  return <MyJobsView jobs={jobs} />;
+  // Serialize to plain objects to avoid Prisma object serialization issues
+  const serializedJobs = JSON.parse(JSON.stringify(jobs));
+
+  return <MyJobsView jobs={serializedJobs} />;
 }

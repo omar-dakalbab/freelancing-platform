@@ -35,5 +35,8 @@ export default async function ContractsPage() {
     orderBy: { createdAt: "desc" },
   });
 
-  return <ContractsListView contracts={contracts} session={session} />;
+  // Serialize to plain objects to avoid Prisma object serialization issues
+  const serializedContracts = JSON.parse(JSON.stringify(contracts));
+
+  return <ContractsListView contracts={serializedContracts} session={session} />;
 }

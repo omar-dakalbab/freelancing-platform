@@ -583,11 +583,11 @@ export function ContractDetailView({
                   {contract.payments.map((payment) => (
                     <div
                       key={payment.id}
-                      className="flex items-center justify-between p-4 rounded-xl bg-gray-50 border border-gray-100"
+                      className="p-4 rounded-xl bg-gray-50 border border-gray-100"
                     >
-                      <div className="flex items-center gap-3">
+                      <div className="flex items-start gap-3 sm:items-center">
                         <div
-                          className={`h-9 w-9 rounded-full flex items-center justify-center ${
+                          className={`h-9 w-9 rounded-full flex items-center justify-center shrink-0 ${
                             payment.status === "COMPLETED"
                               ? "bg-green-100"
                               : payment.status === "FAILED"
@@ -605,44 +605,46 @@ export function ContractDetailView({
                             }`}
                           />
                         </div>
-                        <div>
-                          <p className="text-sm font-medium text-gray-900">
-                            {formatCurrency(payment.amount)}
-                          </p>
-                          <p className="text-xs text-gray-500">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between gap-2">
+                            <p className="text-sm font-medium text-gray-900">
+                              {formatCurrency(payment.amount)}
+                            </p>
+                            <Badge
+                              variant={
+                                payment.status === "COMPLETED"
+                                  ? "success"
+                                  : payment.status === "FAILED"
+                                  ? "destructive"
+                                  : "warning"
+                              }
+                            >
+                              {payment.status}
+                            </Badge>
+                          </div>
+                          <p className="text-xs text-gray-500 mt-0.5">
                             Platform fee: {formatCurrency(payment.platformFee)} · Net:{" "}
                             {formatCurrency(payment.amount - payment.platformFee)}
                           </p>
+                          <div className="flex items-center gap-2 mt-1">
+                            <p className="text-xs text-gray-400">
+                              {formatRelativeTime(payment.createdAt)}
+                            </p>
+                            {payment.status === "COMPLETED" && isFreelancer && (() => {
+                              const latestPayout = payment.payouts?.[0];
+                              if (latestPayout?.status === "COMPLETED") {
+                                return <p className="text-xs text-green-600">· Paid out</p>;
+                              }
+                              if (latestPayout?.status === "PROCESSING") {
+                                return <p className="text-xs text-amber-600">· Processing payout</p>;
+                              }
+                              if (contract.status === "COMPLETED") {
+                                return <p className="text-xs text-accent-600">· Ready to withdraw</p>;
+                              }
+                              return <p className="text-xs text-amber-600">· Payout pending</p>;
+                            })()}
+                          </div>
                         </div>
-                      </div>
-                      <div className="text-right">
-                        <Badge
-                          variant={
-                            payment.status === "COMPLETED"
-                              ? "success"
-                              : payment.status === "FAILED"
-                              ? "destructive"
-                              : "warning"
-                          }
-                        >
-                          {payment.status}
-                        </Badge>
-                        <p className="text-xs text-gray-400 mt-1">
-                          {formatRelativeTime(payment.createdAt)}
-                        </p>
-                        {payment.status === "COMPLETED" && isFreelancer && (() => {
-                          const latestPayout = payment.payouts?.[0];
-                          if (latestPayout?.status === "COMPLETED") {
-                            return <p className="text-xs text-green-600 mt-0.5">Paid out</p>;
-                          }
-                          if (latestPayout?.status === "PROCESSING") {
-                            return <p className="text-xs text-amber-600 mt-0.5">Processing payout</p>;
-                          }
-                          if (contract.status === "COMPLETED") {
-                            return <p className="text-xs text-accent-600 mt-0.5">Ready to withdraw</p>;
-                          }
-                          return <p className="text-xs text-amber-600 mt-0.5">Payout pending</p>;
-                        })()}
                       </div>
                     </div>
                   ))}

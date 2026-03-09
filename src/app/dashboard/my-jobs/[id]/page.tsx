@@ -38,5 +38,8 @@ export default async function JobApplicationsPage({ params }: PageProps) {
   if (!job) notFound();
   if (job.clientProfile.userId !== session.user.id) redirect("/dashboard/my-jobs");
 
-  return <JobApplicationsView job={job} />;
+  // Serialize to plain objects to avoid Prisma object serialization issues
+  const serializedJob = JSON.parse(JSON.stringify(job));
+
+  return <JobApplicationsView job={serializedJob} />;
 }
