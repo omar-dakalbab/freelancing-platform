@@ -47,14 +47,44 @@ interface SendEmailOptions {
  * so the caller can decide whether to log or ignore them.
  */
 async function sendEmail(opts: SendEmailOptions): Promise<void> {
-  const client = getBrevoClient();
-  await client.transactionalEmails.sendTransacEmail({
-    sender: getSender(),
-    to: [{ email: opts.to.email, name: opts.to.name }],
+  const sender = getSender();
+  console.log("[Brevo] Sending email", {
+    to: opts.to.email,
     subject: opts.subject,
-    htmlContent: opts.htmlContent,
-    textContent: opts.textContent,
+    sender: sender.email,
+    hasApiKey: !!process.env.BREVO_API_KEY,
+    apiKeyPrefix: process.env.BREVO_API_KEY?.slice(0, 8) ?? "NOT_SET",
   });
+
+  try {
+    const client = getBrevoClient();
+    const response = await client.transactionalEmails.sendTransacEmail({
+      sender,
+      to: [{ email: opts.to.email, name: opts.to.name }],
+      subject: opts.subject,
+      htmlContent: opts.htmlContent,
+      textContent: opts.textContent,
+    });
+    console.log("[Brevo] Email sent successfully", {
+      to: opts.to.email,
+      subject: opts.subject,
+      response: JSON.stringify(response),
+    });
+  } catch (error: unknown) {
+    const errMsg = error instanceof Error ? error.message : String(error);
+    const errBody =
+      error && typeof error === "object" && "body" in error
+        ? JSON.stringify((error as Record<string, unknown>).body)
+        : undefined;
+    console.error("[Brevo] Failed to send email", {
+      to: opts.to.email,
+      subject: opts.subject,
+      error: errMsg,
+      responseBody: errBody,
+      stack: error instanceof Error ? error.stack : undefined,
+    });
+    throw error;
+  }
 }
 
 // ---------------------------------------------------------------------------
