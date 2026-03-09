@@ -8,6 +8,13 @@ const CLIENT_ROUTES = ["/dashboard/post-job", "/dashboard/my-jobs"];
 const FREELANCER_ROUTES = ["/dashboard/find-jobs", "/dashboard/applications"];
 
 export default auth(async function middleware(req: NextRequest & { auth: { user?: { id: string; role: string } } | null }) {
+  // Redirect www to non-www
+  if (req.nextUrl.hostname === "www.tryletswork.com") {
+    const url = req.nextUrl.clone();
+    url.hostname = "tryletswork.com";
+    return NextResponse.redirect(url, 301);
+  }
+
   const { pathname } = req.nextUrl;
   const session = req.auth;
   const isAuthenticated = !!session?.user;
