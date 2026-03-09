@@ -1,6 +1,7 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { sendContactEmail } from "@/lib/email";
+import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 
 const contactSchema = z.object({
   name: z.string().min(1, "Name is required").max(100),
@@ -9,8 +10,18 @@ const contactSchema = z.object({
   message: z.string().min(1, "Message is required").max(5000),
 });
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
+    // Rate limit: 3 contact submissions per 15 minutes per IP
+    const ip = getClientIp(req.headers);
+    const rl = checkRateLimit(`contact:${ip}`, { limit: 3, windowSec: 900 });
+    if (!rl.allowed) {
+      return NextResponse.json(
+        { error: { message: "Too many submissions. Please try again later." } },
+        { status: 429, headers: { "Retry-After": String(rl.retryAfterSec) } }
+      );
+    }
+
     const body = await req.json();
     const parsed = contactSchema.safeParse(body);
 
