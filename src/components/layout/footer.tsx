@@ -2,7 +2,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { Github, Linkedin, Mail } from "lucide-react";
 import { Logo } from "@/components/ui/logo";
+
+const socialLinks = [
+  { href: "https://github.com/omar-dakalbab", icon: Github, label: "GitHub" },
+  { href: "https://linkedin.com/in/omardakelbab", icon: Linkedin, label: "LinkedIn" },
+  { href: "mailto:omardakelbab@outlook.com", icon: Mail, label: "Email" },
+];
 
 const footerLinks = {
   platform: [
@@ -44,6 +51,20 @@ export function Footer() {
             <p className="mt-3 text-[13px] leading-relaxed text-gray-500 max-w-xs">
               Connecting businesses with top freelance talent worldwide.
             </p>
+            <div className="mt-4 flex items-center gap-2">
+              {socialLinks.map((link) => (
+                <a
+                  key={link.label}
+                  href={link.href}
+                  target={link.href.startsWith("mailto:") ? undefined : "_blank"}
+                  rel={link.href.startsWith("mailto:") ? undefined : "noopener noreferrer"}
+                  className="flex h-8 w-8 items-center justify-center rounded-lg bg-gray-50 text-gray-400 transition-all hover:bg-gray-100 hover:text-gray-600"
+                  aria-label={link.label}
+                >
+                  <link.icon className="h-3.5 w-3.5" />
+                </a>
+              ))}
+            </div>
           </div>
 
           {/* Platform links */}
@@ -104,7 +125,15 @@ export function Footer() {
         {/* Bottom bar */}
         <div className="flex flex-col items-center justify-between gap-3 border-t border-gray-100 py-5 sm:flex-row">
           <p className="text-xs text-gray-400">
-            &copy; {new Date().getFullYear()} LetsWork. All rights reserved.
+            &copy; {new Date().getFullYear()} LetsWork. All rights reserved. Built by{" "}
+            <a
+              href="https://linkedin.com/in/omardakelbab"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-gray-500 hover:text-gray-700 transition-colors font-medium"
+            >
+              Omar Dakelbab
+            </a>
           </p>
           <div className="flex items-center gap-5">
             <Link

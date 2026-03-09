@@ -22,7 +22,7 @@ function getBrevoClient(): BrevoClient {
 
 function getSender() {
   return {
-    email: process.env.BREVO_SENDER_EMAIL ?? "noreply@tryletswork.com",
+    email: process.env.BREVO_SENDER_EMAIL ?? "no-reply@tryletswork.com",
     name: process.env.BREVO_SENDER_NAME ?? "LetsWork",
   };
 }
@@ -131,7 +131,7 @@ export async function sendContactEmail(opts: {
   subject: string;
   message: string;
 }): Promise<void> {
-  const supportEmail = process.env.BREVO_SENDER_EMAIL ?? "noreply@tryletswork.com";
+  const supportEmail = process.env.BREVO_SENDER_EMAIL ?? "no-reply@tryletswork.com";
 
   const html = emailLayout(`
     ${h1("New contact form message")}

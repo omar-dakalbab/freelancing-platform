@@ -150,32 +150,75 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* Team */}
+      {/* Founder */}
       <section className="py-16 sm:py-24 bg-white">
-        <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
           <ScrollReveal>
           <div className="text-center mb-14">
             <p className="text-[13px] font-semibold uppercase tracking-wider text-accent-600 mb-3">
-              Our Team
+              Meet the Founder
             </p>
             <h2 className="text-2xl font-bold text-gray-900 sm:text-3xl">
-              The people behind LetsWork
+              Built by a developer, for developers
             </h2>
           </div>
           </ScrollReveal>
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {team.map((member, i) => (
-              <ScrollReveal key={member.name} delay={i * 100}>
-              <div className="text-center">
-                <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-brand-700 to-brand-900 text-xl font-bold text-white mb-4 transition-transform duration-300 hover:scale-110">
-                  {member.initials}
-                </div>
-                <h3 className="text-sm font-semibold text-gray-900">{member.name}</h3>
-                <p className="text-xs text-gray-500 mt-0.5">{member.role}</p>
+          <ScrollReveal>
+          <div className="rounded-2xl border border-gray-100 bg-gradient-to-br from-cream to-white p-8 sm:p-10">
+            <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6">
+              <div className="flex h-24 w-24 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-brand-700 to-brand-900 text-2xl font-bold text-white shadow-lg shadow-brand-900/20 transition-transform duration-300 hover:scale-105">
+                {founder.initials}
               </div>
-              </ScrollReveal>
-            ))}
+              <div className="text-center sm:text-left flex-1">
+                <h3 className="text-xl font-bold text-gray-900">{founder.name}</h3>
+                <p className="text-sm font-medium text-brand-700 mt-0.5">{founder.role}</p>
+                <div className="flex items-center justify-center sm:justify-start gap-1.5 mt-1.5">
+                  <MapPin className="h-3.5 w-3.5 text-gray-400" />
+                  <span className="text-xs text-gray-500">{founder.location}</span>
+                </div>
+                <p className="mt-4 text-sm text-gray-600 leading-relaxed">
+                  {founder.bio}
+                </p>
+                <div className="flex items-center justify-center sm:justify-start gap-2 mt-5">
+                  <a
+                    href={founder.links.github}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex h-9 w-9 items-center justify-center rounded-lg bg-gray-100 text-gray-500 transition-all hover:bg-gray-900 hover:text-white"
+                    aria-label="GitHub"
+                  >
+                    <Github className="h-4 w-4" />
+                  </a>
+                  <a
+                    href={founder.links.linkedin}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex h-9 w-9 items-center justify-center rounded-lg bg-gray-100 text-gray-500 transition-all hover:bg-[#0A66C2] hover:text-white"
+                    aria-label="LinkedIn"
+                  >
+                    <Linkedin className="h-4 w-4" />
+                  </a>
+                  <a
+                    href={founder.links.upwork}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex h-9 w-9 items-center justify-center rounded-lg bg-gray-100 text-gray-500 transition-all hover:bg-emerald-600 hover:text-white"
+                    aria-label="Upwork"
+                  >
+                    <ExternalLink className="h-4 w-4" />
+                  </a>
+                  <a
+                    href={`mailto:${founder.links.email}`}
+                    className="flex h-9 w-9 items-center justify-center rounded-lg bg-gray-100 text-gray-500 transition-all hover:bg-brand-800 hover:text-white"
+                    aria-label="Email"
+                  >
+                    <Mail className="h-4 w-4" />
+                  </a>
+                </div>
+              </div>
+            </div>
           </div>
+          </ScrollReveal>
         </div>
       </section>
 

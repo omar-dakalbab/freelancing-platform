@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" fill="none">
+  <!-- TalentsWell logomark (white bg variant for dark backgrounds) -->
+  <rect width="40" height="40" rx="10" fill="rgba(255,255,255,0.12)"/>
+  <!-- Rising figures / talent wave -->
+  <path d="M10 28 L15 16 L20 22 L25 12 L30 20" stroke="#6ec6c8" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <!-- Dot accents -->
+  <circle cx="15" cy="13" r="2" fill="#6ec6c8"/>
+  <circle cx="25" cy="9" r="2" fill="#ffffff"/>
+  <!-- Base line -->
+  <line x1="10" y1="31" x2="30" y2="31" stroke="#ffffff" stroke-width="2" stroke-linecap="round" opacity="0.3"/>
+</svg>
