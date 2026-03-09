@@ -122,6 +122,10 @@ export const EVENTS = {
   PAYMENT_CANCELLED: "payment_cancelled",
   PAYOUT_REQUESTED: "payout_requested",
   STRIPE_CONNECTED: "stripe_account_connected",
+  PAYPAL_CHECKOUT_STARTED: "paypal_checkout_started",
+  PAYPAL_CONNECTED: "paypal_account_connected",
+  PAYONEER_CONNECTED: "payoneer_account_connected",
+  PAYOUT_SETTINGS_UPDATED: "payout_settings_updated",
 
   // Profile
   PROFILE_UPDATED: "profile_updated",

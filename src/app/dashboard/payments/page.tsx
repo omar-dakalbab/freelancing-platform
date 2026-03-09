@@ -14,6 +14,7 @@ export default async function PaymentsPage() {
 
   const payments = await prisma.payment.findMany({
     where: {
+      status: { not: "PENDING" },
       contract:
         role === "CLIENT"
           ? { clientProfile: { userId } }
@@ -39,20 +40,30 @@ export default async function PaymentsPage() {
     orderBy: { createdAt: "desc" },
   });
 
-  // Fetch connect status for freelancers
+  // Fetch connect status and payout settings for freelancers
   let connectStatus = { onboarded: false, accountId: null as string | null };
+  let payoutSettings = null;
   if (role === "FREELANCER") {
     const profile = await prisma.freelancerProfile.findUnique({
       where: { userId },
       select: {
         stripeConnectOnboarded: true,
         stripeConnectAccountId: true,
+        paypalEmail: true,
+        payoneerEmail: true,
+        preferredPayoutGateway: true,
       },
     });
     if (profile) {
       connectStatus = {
         onboarded: profile.stripeConnectOnboarded,
         accountId: profile.stripeConnectAccountId,
+      };
+      payoutSettings = {
+        stripeConnectOnboarded: profile.stripeConnectOnboarded,
+        paypalEmail: profile.paypalEmail,
+        payoneerEmail: profile.payoneerEmail,
+        preferredPayoutGateway: profile.preferredPayoutGateway,
       };
     }
   }
@@ -65,6 +76,7 @@ export default async function PaymentsPage() {
       payments={serializedPayments}
       session={session}
       connectStatus={connectStatus}
+      payoutSettings={payoutSettings}
     />
   );
 }

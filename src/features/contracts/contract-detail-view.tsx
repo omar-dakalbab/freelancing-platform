@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import toast from "react-hot-toast";
@@ -135,9 +135,22 @@ export function ContractDetailView({
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [reviewSubmitted, setReviewSubmitted] = useState(false);
   const [updatingMilestone, setUpdatingMilestone] = useState<string | null>(null);
+  const [paymentGateway, setPaymentGateway] = useState<"STRIPE" | "PAYPAL">("STRIPE");
+  const [capturing, setCapturing] = useState(false);
 
   const hasReviewed = reviewSubmitted ||
     (contract.reviews?.some((r) => r.reviewerId === session?.user?.id) ?? false);
+
+  // Auto-capture PayPal payment on redirect back
+  useEffect(() => {
+    const gateway = searchParams.get("gateway");
+    const payment = searchParams.get("payment");
+    const token = searchParams.get("token");
+    if (gateway === "paypal" && payment === "success" && token) {
+      capturePayPalPayment();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const status = contract.status;
   const latestPayment = contract.payments[0];
@@ -211,7 +224,8 @@ export function ContractDetailView({
   async function fundContract() {
     setFunding(true);
     try {
-      const res = await fetch("/api/stripe/checkout", {
+      const endpoint = paymentGateway === "PAYPAL" ? "/api/paypal/checkout" : "/api/stripe/checkout";
+      const res = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ contractId: contract.id }),
@@ -220,11 +234,36 @@ export function ContractDetailView({
       const json = await res.json();
       if (!res.ok) throw new Error(json.error?.message || "Failed to create checkout session");
 
-      track(EVENTS.PAYMENT_CHECKOUT_STARTED, { contract_id: contract.id, amount: contract.amount });
+      track(EVENTS.PAYMENT_CHECKOUT_STARTED, { contract_id: contract.id, amount: contract.amount, gateway: paymentGateway });
       window.location.href = json.data.url;
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Failed to initiate payment");
       setFunding(false);
+    }
+  }
+
+  // Capture PayPal payment after redirect back
+  async function capturePayPalPayment() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const token = urlParams.get("token");
+    if (!token) return;
+
+    setCapturing(true);
+    try {
+      const res = await fetch("/api/paypal/capture", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ orderId: token }),
+      });
+
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error?.message || "Failed to capture payment");
+      toast.success("PayPal payment captured successfully!");
+      router.refresh();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to capture PayPal payment");
+    } finally {
+      setCapturing(false);
     }
   }
 
@@ -331,10 +370,39 @@ export function ContractDetailView({
 
                 {/* Client actions */}
                 {isClient && status === "ACTIVE" && !isPaid && (
-                  <Button loading={funding} onClick={fundContract}>
-                    <CreditCard className="h-4 w-4" />
-                    Fund Contract ({formatCurrency(contract.amount)})
-                  </Button>
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-gray-600">Pay with:</span>
+                      <div className="flex rounded-lg border border-gray-200 overflow-hidden">
+                        <button
+                          type="button"
+                          className={`px-3 py-1.5 text-sm font-medium transition-colors ${
+                            paymentGateway === "STRIPE"
+                              ? "bg-brand-800 text-white"
+                              : "bg-white text-gray-600 hover:bg-gray-50"
+                          }`}
+                          onClick={() => setPaymentGateway("STRIPE")}
+                        >
+                          Stripe
+                        </button>
+                        <button
+                          type="button"
+                          className={`px-3 py-1.5 text-sm font-medium transition-colors border-l border-gray-200 ${
+                            paymentGateway === "PAYPAL"
+                              ? "bg-[#0070ba] text-white"
+                              : "bg-white text-gray-600 hover:bg-gray-50"
+                          }`}
+                          onClick={() => setPaymentGateway("PAYPAL")}
+                        >
+                          PayPal
+                        </button>
+                      </div>
+                    </div>
+                    <Button loading={funding || capturing} onClick={fundContract}>
+                      <CreditCard className="h-4 w-4" />
+                      Fund Contract ({formatCurrency(contract.amount)})
+                    </Button>
+                  </div>
                 )}
 
                 {isClient && status === "SUBMITTED" && (

@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import toast from "react-hot-toast";
-import { DollarSign, ArrowRight, Clock, Landmark, CheckCircle, Loader2 } from "lucide-react";
+import { DollarSign, ArrowRight, Clock, Landmark, CheckCircle, Loader2, Settings } from "lucide-react";
 import { ScrollReveal } from "@/components/ui/scroll-reveal";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -27,10 +27,18 @@ type PaymentWithRelations = Payment & {
   payouts: Payout[];
 };
 
+interface PayoutSettings {
+  stripeConnectOnboarded: boolean;
+  paypalEmail: string | null;
+  payoneerEmail: string | null;
+  preferredPayoutGateway: string;
+}
+
 interface PaymentsViewProps {
   payments: PaymentWithRelations[];
   session: Session;
   connectStatus: { onboarded: boolean; accountId: string | null };
+  payoutSettings?: PayoutSettings | null;
 }
 
 const statusConfig: Record<string, { variant: "default" | "success" | "secondary" | "warning" | "destructive"; label: string }> = {
@@ -58,7 +66,7 @@ function getPayoutBadge(payment: PaymentWithRelations, contractStatus: string) {
   return <Badge variant="warning">Payout Pending</Badge>;
 }
 
-export function PaymentsView({ payments, session, connectStatus }: PaymentsViewProps) {
+export function PaymentsView({ payments, session, connectStatus, payoutSettings }: PaymentsViewProps) {
   const role = session.user.role;
   const userId = session.user.id;
   const isFreelancer = role === "FREELANCER";
@@ -66,6 +74,11 @@ export function PaymentsView({ payments, session, connectStatus }: PaymentsViewP
   const [connectLoading, setConnectLoading] = useState(false);
   const [payoutLoadingId, setPayoutLoadingId] = useState<string | null>(null);
   const [onboarded, setOnboarded] = useState(connectStatus.onboarded);
+  const [showPayoutSettings, setShowPayoutSettings] = useState(false);
+  const [paypalEmail, setPaypalEmail] = useState(payoutSettings?.paypalEmail || "");
+  const [payoneerEmail, setPayoneerEmail] = useState(payoutSettings?.payoneerEmail || "");
+  const [preferredGateway, setPreferredGateway] = useState(payoutSettings?.preferredPayoutGateway || "STRIPE");
+  const [savingSettings, setSavingSettings] = useState(false);
 
   // Handle connect return params
   useEffect(() => {
@@ -118,12 +131,21 @@ export function PaymentsView({ payments, session, connectStatus }: PaymentsViewP
     }
   }
 
-  async function handleRequestPayout(paymentId: string, e: React.MouseEvent) {
+  function getPayoutEndpoint(payment: PaymentWithRelations): string {
+    // Route payout to the correct gateway based on preferred method or payment gateway
+    const gateway = preferredGateway || (payment as unknown as { gateway?: string }).gateway || "STRIPE";
+    if (gateway === "PAYPAL") return "/api/paypal/payout";
+    if (gateway === "PAYONEER") return "/api/payoneer/payout";
+    return "/api/stripe/payout";
+  }
+
+  async function handleRequestPayout(paymentId: string, payment: PaymentWithRelations, e: React.MouseEvent) {
     e.preventDefault();
     e.stopPropagation();
     setPayoutLoadingId(paymentId);
     try {
-      const res = await fetch("/api/stripe/payout", {
+      const endpoint = getPayoutEndpoint(payment);
+      const res = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ paymentId }),
@@ -131,7 +153,7 @@ export function PaymentsView({ payments, session, connectStatus }: PaymentsViewP
       const json = await res.json();
       if (res.ok) {
         toast.success("Payout initiated successfully!");
-        track(EVENTS.PAYOUT_REQUESTED, { payment_id: paymentId });
+        track(EVENTS.PAYOUT_REQUESTED, { payment_id: paymentId, gateway: preferredGateway });
         window.location.reload();
       } else {
         toast.error(json.error?.message || "Payout request failed");
@@ -140,6 +162,32 @@ export function PaymentsView({ payments, session, connectStatus }: PaymentsViewP
       toast.error("Something went wrong");
     } finally {
       setPayoutLoadingId(null);
+    }
+  }
+
+  async function handleSavePayoutSettings() {
+    setSavingSettings(true);
+    try {
+      const res = await fetch("/api/profiles/payout-settings", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          paypalEmail: paypalEmail || "",
+          payoneerEmail: payoneerEmail || "",
+          preferredPayoutGateway: preferredGateway,
+        }),
+      });
+      const json = await res.json();
+      if (res.ok) {
+        toast.success("Payout settings saved!");
+        setShowPayoutSettings(false);
+      } else {
+        toast.error(json.error?.message || "Failed to save settings");
+      }
+    } catch {
+      toast.error("Something went wrong");
+    } finally {
+      setSavingSettings(false);
     }
   }
 
@@ -181,12 +229,108 @@ export function PaymentsView({ payments, session, connectStatus }: PaymentsViewP
 
       {isFreelancer && onboarded && (
         <div className="mb-6 rounded-2xl border border-green-200 bg-green-50 p-4">
-          <div className="flex items-center gap-3">
-            <CheckCircle className="h-5 w-5 text-green-600 shrink-0" />
-            <p className="text-sm text-green-800">
-              <span className="font-medium">Bank account connected.</span>{" "}
-              You can request payouts for completed contracts.
-            </p>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <CheckCircle className="h-5 w-5 text-green-600 shrink-0" />
+              <p className="text-sm text-green-800">
+                <span className="font-medium">Bank account connected.</span>{" "}
+                You can request payouts for completed contracts.
+              </p>
+            </div>
+            <button
+              onClick={() => setShowPayoutSettings(!showPayoutSettings)}
+              className="text-green-700 hover:text-green-900 transition-colors"
+              title="Payout Settings"
+            >
+              <Settings className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Payout Settings */}
+      {isFreelancer && (showPayoutSettings || (!onboarded && !showPayoutSettings)) && (
+        <div className="mb-6 rounded-2xl border border-gray-200 bg-white p-6">
+          <h3 className="text-sm font-semibold text-gray-900 mb-4">Payout Settings</h3>
+          <div className="space-y-4">
+            {/* Preferred gateway */}
+            <div>
+              <label className="text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Preferred Payout Method
+              </label>
+              <div className="flex gap-2 mt-2">
+                {(["STRIPE", "PAYPAL", "PAYONEER"] as const).map((gw) => (
+                  <button
+                    key={gw}
+                    type="button"
+                    disabled={gw === "PAYONEER"}
+                    className={`px-3 py-1.5 text-sm font-medium rounded-lg border transition-colors ${
+                      gw === "PAYONEER"
+                        ? "bg-gray-50 text-gray-400 border-gray-200 cursor-not-allowed"
+                        : preferredGateway === gw
+                        ? gw === "PAYPAL"
+                          ? "bg-[#0070ba] text-white border-[#0070ba]"
+                          : "bg-brand-800 text-white border-brand-800"
+                        : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"
+                    }`}
+                    onClick={() => gw !== "PAYONEER" && setPreferredGateway(gw)}
+                  >
+                    {gw === "STRIPE" ? "Stripe" : gw === "PAYPAL" ? "PayPal" : "Payoneer"}
+                    {gw === "PAYONEER" && (
+                      <span className="ml-1 text-[10px] text-gray-400">(Coming Soon)</span>
+                    )}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Stripe status */}
+            <div className="flex items-center gap-2 text-sm">
+              <span className="text-gray-500">Stripe:</span>
+              {onboarded ? (
+                <span className="text-green-600 font-medium">Connected</span>
+              ) : (
+                <Button size="sm" variant="outline" onClick={handleConnect} loading={connectLoading}>
+                  Connect Stripe
+                </Button>
+              )}
+            </div>
+
+            {/* PayPal email */}
+            <div>
+              <label htmlFor="paypal-email" className="text-sm text-gray-500">PayPal Email</label>
+              <input
+                id="paypal-email"
+                type="email"
+                value={paypalEmail}
+                onChange={(e) => setPaypalEmail(e.target.value)}
+                placeholder="your-paypal@email.com"
+                className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+              />
+            </div>
+
+            {/* Payoneer email — coming soon */}
+            <div className="opacity-50">
+              <label htmlFor="payoneer-email" className="text-sm text-gray-500">
+                Payoneer Email <span className="text-xs text-gray-400">(Coming Soon)</span>
+              </label>
+              <input
+                id="payoneer-email"
+                type="email"
+                disabled
+                value=""
+                placeholder="Coming soon..."
+                className="mt-1 w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-400 cursor-not-allowed"
+              />
+            </div>
+
+            <Button
+              size="sm"
+              onClick={handleSavePayoutSettings}
+              loading={savingSettings}
+            >
+              Save Payout Settings
+            </Button>
           </div>
         </div>
       )}
@@ -312,6 +456,11 @@ export function PaymentsView({ payments, session, connectStatus }: PaymentsViewP
                         >
                           {statusConfig[payment.status]?.label || payment.status}
                         </Badge>
+                        {(payment as unknown as { gateway?: string }).gateway && (
+                          <Badge variant="secondary" className="text-[10px]">
+                            {(payment as unknown as { gateway?: string }).gateway === "PAYPAL" ? "PayPal" : "Stripe"}
+                          </Badge>
+                        )}
                         {payment.status === "COMPLETED" && isFreelancer && (
                           getPayoutBadge(payment, payment.contract.status)
                         )}
@@ -338,7 +487,7 @@ export function PaymentsView({ payments, session, connectStatus }: PaymentsViewP
                       {canRequestPayout ? (
                         <Button
                           size="sm"
-                          onClick={(e) => handleRequestPayout(payment.id, e)}
+                          onClick={(e) => handleRequestPayout(payment.id, payment, e)}
                           loading={payoutLoadingId === payment.id}
                           disabled={payoutLoadingId !== null}
                         >
@@ -368,7 +517,7 @@ export function PaymentsView({ payments, session, connectStatus }: PaymentsViewP
                     {canRequestPayout ? (
                       <Button
                         size="sm"
-                        onClick={(e) => handleRequestPayout(payment.id, e)}
+                        onClick={(e) => handleRequestPayout(payment.id, payment, e)}
                         loading={payoutLoadingId === payment.id}
                         disabled={payoutLoadingId !== null}
                       >

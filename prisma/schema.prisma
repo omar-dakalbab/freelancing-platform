@@ -57,6 +57,17 @@ enum PayoutStatus {
   FAILED
 }
 
+enum PaymentGateway {
+  STRIPE
+  PAYPAL
+}
+
+enum PayoutGateway {
+  STRIPE
+  PAYPAL
+  PAYONEER
+}
+
 model User {
   id            String    @id @default(cuid())
   email         String    @unique
@@ -137,6 +148,10 @@ model FreelancerProfile {
   stripeConnectAccountId   String?   @unique
   stripeConnectOnboarded   Boolean   @default(false)
   stripeConnectOnboardedAt DateTime?
+
+  paypalEmail             String?
+  payoneerEmail           String?
+  preferredPayoutGateway  PayoutGateway @default(STRIPE)
 
   user           User             @relation(fields: [userId], references: [id], onDelete: Cascade)
   skills         Skill[]          @relation("FreelancerSkills")
@@ -285,16 +300,19 @@ model Milestone {
 }
 
 model Payment {
-  id               String        @id @default(cuid())
+  id               String         @id @default(cuid())
   contractId       String
   milestoneId      String?
   amount           Float
   platformFee      Float
+  gateway          PaymentGateway @default(STRIPE)
   stripePaymentId  String?
-  stripeSessionId  String?       @unique
-  status           PaymentStatus @default(PENDING)
-  createdAt        DateTime      @default(now())
-  updatedAt        DateTime      @updatedAt
+  stripeSessionId  String?        @unique
+  paypalOrderId    String?        @unique
+  paypalCaptureId  String?
+  status           PaymentStatus  @default(PENDING)
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
 
   contract  Contract   @relation(fields: [contractId], references: [id], onDelete: Cascade)
   milestone Milestone? @relation(fields: [milestoneId], references: [id], onDelete: SetNull)
@@ -305,15 +323,18 @@ model Payment {
 }
 
 model Payout {
-  id                  String       @id @default(cuid())
+  id                  String        @id @default(cuid())
   paymentId           String
   freelancerProfileId String
   amount              Float
-  stripeTransferId    String?      @unique
-  status              PayoutStatus @default(PENDING)
+  gateway             PayoutGateway @default(STRIPE)
+  stripeTransferId    String?       @unique
+  paypalPayoutId      String?       @unique
+  payoneerPayoutId    String?       @unique
+  status              PayoutStatus  @default(PENDING)
   failureReason       String?
-  createdAt           DateTime     @default(now())
-  updatedAt           DateTime     @updatedAt
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
 
   payment           Payment           @relation(fields: [paymentId], references: [id], onDelete: Cascade)
   freelancerProfile FreelancerProfile @relation(fields: [freelancerProfileId], references: [id], onDelete: Cascade)
