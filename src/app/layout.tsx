@@ -7,6 +7,7 @@ import { Footer } from "@/components/layout/footer";
 import { ChatWidget } from "@/components/chat-widget";
 import { PostHogProvider } from "@/components/posthog-provider";
 import { GoogleAnalytics, GoogleTagManager, GoogleTagManagerNoscript } from "@/components/analytics";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import { auth } from "@/lib/auth";
 
 const inter = Inter({
@@ -108,6 +109,7 @@ export default async function RootLayout({
           <ToastProvider />
           <ChatWidget userRole={session?.user?.role ?? null} />
         </PostHogProvider>
+        <SpeedInsights />
       </body>
     </html>
   );
