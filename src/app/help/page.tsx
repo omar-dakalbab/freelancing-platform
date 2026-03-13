@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import {
-  Search, BookOpen, CreditCard, FileText, MessageSquare, Users,
+  BookOpen, FileText, MessageSquare, Users,
   Shield, HelpCircle, ChevronRight, Mail, ArrowRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -30,7 +30,7 @@ const categories = [
     articles: [
       { q: "How do I post a job?", a: "Go to Dashboard → Post a Job. Add a title, description, required skills, budget range, and experience level. Click Publish to make it live." },
       { q: "How do I hire a freelancer?", a: "Review applications on your job page, shortlist candidates, chat with them via Messages, then change their status to Hired to create a contract." },
-      { q: "How do I pay for completed work?", a: "When a freelancer submits work on a contract, a Pay button appears. Payments are processed securely through Stripe. A 10% platform fee applies." },
+      { q: "How do I arrange compensation?", a: "Connect directly with freelancers via email or WhatsApp to discuss project details and compensation. LetsWork does not process payments." },
     ],
   },
   {
@@ -39,18 +39,18 @@ const categories = [
     description: "Finding work and getting paid",
     articles: [
       { q: "How do I find jobs?", a: "Browse the Jobs page and filter by skills, budget, or category. Click any job to view details and apply with a cover letter and proposed rate." },
-      { q: "How do contracts work?", a: "When hired, a contract is created. Accept it to begin work. Once the client funds the contract, you can submit your deliverables." },
-      { q: "When do I get paid?", a: "After you submit work and the client marks the contract as complete, your payout is processed. Payouts are handled through Stripe Connect." },
+      { q: "How do contracts work?", a: "When hired, a contract is created. Accept it to begin work and use it to track your deliverables and project status." },
+      { q: "How do I arrange payment?", a: "Connect directly with your client via email or WhatsApp to discuss and arrange compensation. LetsWork does not process payments." },
     ],
   },
   {
-    title: "Payments & Billing",
-    icon: CreditCard,
-    description: "Understanding payments and fees",
+    title: "Contact & Communication",
+    icon: MessageSquare,
+    description: "Connecting directly with clients and freelancers",
     articles: [
-      { q: "What payment methods are accepted?", a: "LetsWork uses Stripe for all payments. Clients can pay with credit/debit cards. Freelancers receive payouts to their connected bank account." },
-      { q: "What are the platform fees?", a: "A 10% service fee is applied to each payment. This covers payment processing, platform maintenance, and customer support." },
-      { q: "Are payments secure?", a: "Yes. All payments are held in escrow until work is approved. We use Stripe's enterprise-grade security for all transactions." },
+      { q: "How do I contact a freelancer outside the platform?", a: "Once connected through a job application, you can exchange contact details and reach each other via email or WhatsApp to discuss project specifics and compensation." },
+      { q: "Does LetsWork charge any fees?", a: "LetsWork is free to use. The platform does not process payments or charge service fees. All compensation is arranged directly between clients and freelancers." },
+      { q: "How do clients and freelancers agree on compensation?", a: "Connect directly with freelancers via email or WhatsApp to discuss project details and compensation. LetsWork facilitates the introduction and contract tracking." },
     ],
   },
   {

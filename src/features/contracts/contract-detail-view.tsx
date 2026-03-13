@@ -1,7 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useState } from "react";
 import Link from "next/link";
 import toast from "react-hot-toast";
 import {
@@ -9,15 +8,14 @@ import {
   CheckCircle,
   XCircle,
   Upload,
-  DollarSign,
-  Clock,
-  CreditCard,
-  AlertTriangle,
   Target,
   Play,
   Check,
   Circle,
   CalendarDays,
+  Mail,
+  Phone,
+  MessageCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -26,7 +24,6 @@ import { Avatar } from "@/components/ui/avatar";
 import { ReviewForm } from "@/features/reviews/review-form";
 import { ScrollReveal } from "@/components/ui/scroll-reveal";
 import { formatCurrency, formatDate } from "@/lib/utils";
-import { TimeAgo } from "@/components/ui/time-ago";
 import { cn } from "@/lib/utils";
 import { track, EVENTS } from "@/lib/analytics";
 import type { Session } from "next-auth";
@@ -55,6 +52,8 @@ type ContractWithRelations = Contract & {
   };
   freelancerProfile: FreelancerProfile & {
     user: Pick<User, "id" | "email" | "avatar">;
+    whatsappNumber?: string | null;
+    phoneNumber?: string | null;
   };
   payments: PaymentWithPayouts[];
   milestones?: Milestone[];
@@ -84,7 +83,7 @@ const statusConfig: Record<
   ACTIVE: {
     variant: "default",
     label: "Active",
-    description: "Contract accepted. Awaiting payment and work delivery.",
+    description: "Contract accepted. Awaiting work delivery.",
   },
   SUBMITTED: {
     variant: "secondary",
@@ -116,7 +115,7 @@ const milestoneStatusConfig: Record<
   IN_PROGRESS: { variant: "default", label: "In Progress", icon: Play, color: "text-blue-500" },
   SUBMITTED: { variant: "warning", label: "Submitted", icon: Upload, color: "text-amber-500" },
   APPROVED: { variant: "success", label: "Approved", icon: Check, color: "text-green-500" },
-  PAID: { variant: "success", label: "Paid", icon: DollarSign, color: "text-green-600" },
+  PAID: { variant: "success", label: "Completed", icon: CheckCircle, color: "text-green-600" },
 };
 
 export function ContractDetailView({
@@ -125,36 +124,16 @@ export function ContractDetailView({
   isFreelancer,
   session,
 }: ContractDetailViewProps) {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const paymentResult = searchParams.get("payment");
-
   const [contract, setContract] = useState(initialContract);
   const [updating, setUpdating] = useState(false);
-  const [funding, setFunding] = useState(false);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [reviewSubmitted, setReviewSubmitted] = useState(false);
   const [updatingMilestone, setUpdatingMilestone] = useState<string | null>(null);
-  const [paymentGateway, setPaymentGateway] = useState<"STRIPE" | "PAYPAL">("STRIPE");
-  const [capturing, setCapturing] = useState(false);
 
   const hasReviewed = reviewSubmitted ||
     (contract.reviews?.some((r) => r.reviewerId === session?.user?.id) ?? false);
 
-  // Auto-capture PayPal payment on redirect back
-  useEffect(() => {
-    const gateway = searchParams.get("gateway");
-    const payment = searchParams.get("payment");
-    const token = searchParams.get("token");
-    if (gateway === "paypal" && payment === "success" && token) {
-      capturePayPalPayment();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
   const status = contract.status;
-  const latestPayment = contract.payments[0];
-  const isPaid = latestPayment?.status === "COMPLETED";
   const statusInfo = statusConfig[status] || { variant: "secondary" as const, label: status, description: "" };
   const milestones = contract.milestones || [];
   const hasMilestones = milestones.length > 0;
@@ -221,52 +200,6 @@ export function ContractDetailView({
     }
   }
 
-  async function fundContract() {
-    setFunding(true);
-    try {
-      const endpoint = paymentGateway === "PAYPAL" ? "/api/paypal/checkout" : "/api/stripe/checkout";
-      const res = await fetch(endpoint, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ contractId: contract.id }),
-      });
-
-      const json = await res.json();
-      if (!res.ok) throw new Error(json.error?.message || "Failed to create checkout session");
-
-      track(EVENTS.PAYMENT_CHECKOUT_STARTED, { contract_id: contract.id, amount: contract.amount, gateway: paymentGateway });
-      window.location.href = json.data.url;
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to initiate payment");
-      setFunding(false);
-    }
-  }
-
-  // Capture PayPal payment after redirect back
-  async function capturePayPalPayment() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const token = urlParams.get("token");
-    if (!token) return;
-
-    setCapturing(true);
-    try {
-      const res = await fetch("/api/paypal/capture", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ orderId: token }),
-      });
-
-      const json = await res.json();
-      if (!res.ok) throw new Error(json.error?.message || "Failed to capture payment");
-      toast.success("PayPal payment captured successfully!");
-      router.refresh();
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to capture PayPal payment");
-    } finally {
-      setCapturing(false);
-    }
-  }
-
   return (
     <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
       <Link
@@ -276,24 +209,6 @@ export function ContractDetailView({
         <ArrowLeft className="h-4 w-4" />
         Back to Contracts
       </Link>
-
-      {/* Payment result banner */}
-      {paymentResult === "success" && (
-        <div className="mb-6 rounded-xl bg-green-50 border border-green-200 p-4 flex items-center gap-3">
-          <CheckCircle className="h-5 w-5 text-green-600 shrink-0" />
-          <p className="text-sm text-green-800 font-medium">
-            Payment successful! The contract is now funded.
-          </p>
-        </div>
-      )}
-      {paymentResult === "cancelled" && (
-        <div className="mb-6 rounded-xl bg-amber-50 border border-amber-200 p-4 flex items-center gap-3">
-          <AlertTriangle className="h-5 w-5 text-amber-600 shrink-0" />
-          <p className="text-sm text-amber-800 font-medium">
-            Payment was cancelled. You can try again when ready.
-          </p>
-        </div>
-      )}
 
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Main content - order 2 on mobile to show sidebar summary first */}
@@ -350,59 +265,14 @@ export function ContractDetailView({
                 )}
 
                 {isFreelancer && status === "ACTIVE" && (
-                  <div>
-                    {!isPaid ? (
-                      <p className="text-sm text-amber-600 bg-amber-50 border border-amber-200 rounded-xl p-3">
-                        Waiting for the client to fund the contract before you can submit work.
-                      </p>
-                    ) : (
-                      <Button
-                        variant="default"
-                        loading={updating}
-                        onClick={() => updateStatus("SUBMITTED")}
-                      >
-                        <Upload className="h-4 w-4" />
-                        Mark Work as Submitted
-                      </Button>
-                    )}
-                  </div>
-                )}
-
-                {/* Client actions */}
-                {isClient && status === "ACTIVE" && !isPaid && (
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm text-gray-600">Pay with:</span>
-                      <div className="flex rounded-lg border border-gray-200 overflow-hidden">
-                        <button
-                          type="button"
-                          className={`px-3 py-1.5 text-sm font-medium transition-colors ${
-                            paymentGateway === "STRIPE"
-                              ? "bg-brand-800 text-white"
-                              : "bg-white text-gray-600 hover:bg-gray-50"
-                          }`}
-                          onClick={() => setPaymentGateway("STRIPE")}
-                        >
-                          Stripe
-                        </button>
-                        <button
-                          type="button"
-                          className={`px-3 py-1.5 text-sm font-medium transition-colors border-l border-gray-200 ${
-                            paymentGateway === "PAYPAL"
-                              ? "bg-[#0070ba] text-white"
-                              : "bg-white text-gray-600 hover:bg-gray-50"
-                          }`}
-                          onClick={() => setPaymentGateway("PAYPAL")}
-                        >
-                          PayPal
-                        </button>
-                      </div>
-                    </div>
-                    <Button loading={funding || capturing} onClick={fundContract}>
-                      <CreditCard className="h-4 w-4" />
-                      Fund Contract ({formatCurrency(contract.amount)})
-                    </Button>
-                  </div>
+                  <Button
+                    variant="default"
+                    loading={updating}
+                    onClick={() => updateStatus("SUBMITTED")}
+                  >
+                    <Upload className="h-4 w-4" />
+                    Mark Work as Submitted
+                  </Button>
                 )}
 
                 {isClient && status === "SUBMITTED" && (
@@ -636,89 +506,55 @@ export function ContractDetailView({
             </div>
           )}
 
-          {/* Payment history */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Payment History</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {contract.payments.length === 0 ? (
-                <div className="py-6 text-center">
-                  <DollarSign className="h-8 w-8 text-gray-300 mx-auto mb-2" />
-                  <p className="text-sm text-gray-400">No payments yet</p>
+          {/* Contact Freelancer — visible to client */}
+          {isClient && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Contact Freelancer</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gray-100 shrink-0">
+                    <Mail className="h-4 w-4 text-gray-500" />
+                  </div>
+                  <a
+                    href={`mailto:${contract.freelancerProfile.user.email}`}
+                    className="text-sm text-brand-700 hover:underline break-all"
+                  >
+                    {contract.freelancerProfile.user.email}
+                  </a>
                 </div>
-              ) : (
-                <div className="space-y-3">
-                  {contract.payments.map((payment) => (
-                    <div
-                      key={payment.id}
-                      className="p-4 rounded-xl bg-gray-50 border border-gray-100"
-                    >
-                      <div className="flex items-start gap-3 sm:items-center">
-                        <div
-                          className={`h-9 w-9 rounded-full flex items-center justify-center shrink-0 ${
-                            payment.status === "COMPLETED"
-                              ? "bg-green-100"
-                              : payment.status === "FAILED"
-                              ? "bg-red-100"
-                              : "bg-amber-100"
-                          }`}
-                        >
-                          <DollarSign
-                            className={`h-4 w-4 ${
-                              payment.status === "COMPLETED"
-                                ? "text-green-600"
-                                : payment.status === "FAILED"
-                                ? "text-red-600"
-                                : "text-amber-600"
-                            }`}
-                          />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center justify-between gap-2">
-                            <p className="text-sm font-medium text-gray-900">
-                              {formatCurrency(payment.amount)}
-                            </p>
-                            <Badge
-                              variant={
-                                payment.status === "COMPLETED"
-                                  ? "success"
-                                  : payment.status === "FAILED"
-                                  ? "destructive"
-                                  : "warning"
-                              }
-                            >
-                              {payment.status}
-                            </Badge>
-                          </div>
-                          <p className="text-xs text-gray-500 mt-0.5">
-                            Platform fee: {formatCurrency(payment.platformFee)} · Net:{" "}
-                            {formatCurrency(payment.amount - payment.platformFee)}
-                          </p>
-                          <div className="flex items-center gap-2 mt-1">
-                            <TimeAgo date={payment.createdAt} className="text-xs text-gray-400" />
-                            {payment.status === "COMPLETED" && isFreelancer && (() => {
-                              const latestPayout = payment.payouts?.[0];
-                              if (latestPayout?.status === "COMPLETED") {
-                                return <p className="text-xs text-green-600">· Paid out</p>;
-                              }
-                              if (latestPayout?.status === "PROCESSING") {
-                                return <p className="text-xs text-amber-600">· Processing payout</p>;
-                              }
-                              if (contract.status === "COMPLETED") {
-                                return <p className="text-xs text-accent-600">· Ready to withdraw</p>;
-                              }
-                              return <p className="text-xs text-amber-600">· Payout pending</p>;
-                            })()}
-                          </div>
-                        </div>
-                      </div>
+                {contract.freelancerProfile.whatsappNumber && (
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-green-50 shrink-0">
+                      <MessageCircle className="h-4 w-4 text-green-600" />
                     </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
+                    <a
+                      href={`https://wa.me/${contract.freelancerProfile.whatsappNumber.replace(/\D/g, "")}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-sm text-green-700 hover:underline"
+                    >
+                      {contract.freelancerProfile.whatsappNumber}
+                    </a>
+                  </div>
+                )}
+                {contract.freelancerProfile.phoneNumber && (
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gray-100 shrink-0">
+                      <Phone className="h-4 w-4 text-gray-500" />
+                    </div>
+                    <a
+                      href={`tel:${contract.freelancerProfile.phoneNumber}`}
+                      className="text-sm text-gray-700 hover:underline"
+                    >
+                      {contract.freelancerProfile.phoneNumber}
+                    </a>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
         </div>
 
         {/* Sidebar - order 1 on mobile so contract value shows first */}
@@ -729,11 +565,6 @@ export function ContractDetailView({
               <div className="text-center">
                 <p className="text-3xl font-bold text-gray-900">{formatCurrency(contract.amount)}</p>
                 <p className="text-sm text-gray-500 mt-1">Contract Value</p>
-                {isPaid && (
-                  <Badge variant="success" className="mt-2">
-                    Funded
-                  </Badge>
-                )}
               </div>
 
               {/* Milestone summary in sidebar */}

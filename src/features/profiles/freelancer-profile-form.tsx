@@ -58,6 +58,8 @@ export function FreelancerProfileForm({ profile, session }: FreelancerProfileFor
       bio: profile?.bio || "",
       hourlyRate: profile?.hourlyRate || undefined,
       skills: profile?.skills.map((s) => s.name) || [],
+      whatsappNumber: profile?.whatsappNumber || "",
+      phoneNumber: profile?.phoneNumber || "",
     },
   });
 
@@ -267,6 +269,23 @@ export function FreelancerProfileForm({ profile, session }: FreelancerProfileFor
               error={errors.hourlyRate?.message}
               hint="Your rate in US dollars per hour"
               {...register("hourlyRate", { valueAsNumber: true })}
+            />
+
+            <Input
+              label="Phone Number"
+              type="tel"
+              placeholder="+1 555 000 0000"
+              error={errors.phoneNumber?.message}
+              {...register("phoneNumber")}
+            />
+
+            <Input
+              label="WhatsApp Number"
+              type="tel"
+              placeholder="+1 555 000 0000"
+              error={errors.whatsappNumber?.message}
+              hint="Include country code (e.g. +1, +44)"
+              {...register("whatsappNumber")}
             />
 
             <div className="relative">

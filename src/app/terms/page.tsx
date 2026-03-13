@@ -21,15 +21,15 @@ const sections = [
   },
   {
     title: "4. Platform Services",
-    content: `LetsWork provides a marketplace connecting clients seeking services with freelancers offering their skills. We facilitate job postings, applications, messaging, contracts, and payment processing. LetsWork is not a party to any contract between clients and freelancers — we act solely as an intermediary platform.`,
+    content: `LetsWork provides a marketplace connecting clients seeking services with freelancers offering their skills. We facilitate job postings, applications, messaging, and contract tracking. LetsWork does not process payments and is not a party to any contract between clients and freelancers — we act solely as an intermediary platform.`,
   },
   {
     title: "5. Fees and Payments",
-    content: `LetsWork charges a 10% service fee on all completed transactions. Clients pay the full contract amount, and the service fee is deducted before the freelancer receives their payout. All payments are processed through Stripe. By using the Platform, you agree to Stripe's terms of service. Refunds and disputes are handled on a case-by-case basis in accordance with our dispute resolution process.`,
+    content: `LetsWork is free to use. The Platform does not process payments or charge service fees of any kind. All compensation arrangements are made directly between clients and freelancers, outside of the Platform. LetsWork is not responsible for any payment disputes, non-payment, or financial arrangements between users.`,
   },
   {
     title: "6. User Conduct",
-    content: `You agree not to: (a) use the Platform for any unlawful purpose; (b) post false, misleading, or fraudulent content; (c) harass, abuse, or threaten other users; (d) attempt to circumvent Platform fees by arranging off-platform payments; (e) scrape, crawl, or use automated means to access the Platform; (f) upload malware or malicious code; (g) impersonate another person or entity. Violation of these rules may result in account suspension or termination.`,
+    content: `You agree not to: (a) use the Platform for any unlawful purpose; (b) post false, misleading, or fraudulent content; (c) harass, abuse, or threaten other users; (d) scrape, crawl, or use automated means to access the Platform; (e) upload malware or malicious code; (f) impersonate another person or entity. Violation of these rules may result in account suspension or termination.`,
   },
   {
     title: "7. Intellectual Property",
@@ -37,7 +37,7 @@ const sections = [
   },
   {
     title: "8. Contracts Between Users",
-    content: `Contracts created through the Platform are agreements between the client and freelancer. LetsWork facilitates contract creation and payment processing but is not liable for the quality of work, missed deadlines, or disputes between parties. We encourage users to clearly define project scope, deliverables, and timelines before entering a contract.`,
+    content: `Contracts created through the Platform are agreements between the client and freelancer. LetsWork facilitates contract creation and tracking but is not liable for the quality of work, missed deadlines, payment disputes, or other disputes between parties. We encourage users to clearly define project scope, deliverables, and timelines before entering a contract.`,
   },
   {
     title: "9. Reviews and Ratings",

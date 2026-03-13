@@ -153,6 +153,9 @@ model FreelancerProfile {
   payoneerEmail           String?
   preferredPayoutGateway  PayoutGateway @default(STRIPE)
 
+  whatsappNumber String?
+  phoneNumber    String?
+
   user           User             @relation(fields: [userId], references: [id], onDelete: Cascade)
   skills         Skill[]          @relation("FreelancerSkills")
   portfolioItems PortfolioItem[]

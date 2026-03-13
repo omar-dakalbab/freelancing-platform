@@ -8,7 +8,6 @@ import {
   Users,
   Briefcase,
   FileText,
-  CreditCard,
   Star,
   ChevronRight,
   Shield,
@@ -23,7 +22,6 @@ const navItems = [
   { href: "/admin/users", label: "Users", icon: Users },
   { href: "/admin/jobs", label: "Jobs", icon: Briefcase },
   { href: "/admin/contracts", label: "Contracts", icon: FileText },
-  { href: "/admin/payments", label: "Payments", icon: CreditCard },
   { href: "/admin/reviews", label: "Reviews", icon: Star },
 ];
 

@@ -62,7 +62,7 @@ const STATIC_RESPONSES: Array<{ keywords: string[]; response: string }> = [
   {
     keywords: ["payment", "pay", "stripe", "fund", "money"],
     response:
-      `Payments on ${BRAND_NAME}:\n\n1. After hiring a freelancer, the client creates a fixed-price contract\n2. The client clicks "Fund Contract" to pay via Stripe\n3. Payment is held until the freelancer submits their work\n4. Once the client marks the contract as completed, the freelancer receives payment\n\nA 10% platform fee is applied. All payments are processed securely through Stripe.`,
+      `${BRAND_NAME} connects clients with freelancers. Once you find the right match, you can communicate directly via email, WhatsApp, or phone to discuss project details and arrange compensation.`,
   },
   {
     keywords: ["get started", "start", "begin", "new here", "how to use"],

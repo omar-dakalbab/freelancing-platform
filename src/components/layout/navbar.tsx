@@ -6,7 +6,7 @@ import { useState, useEffect, useRef } from "react";
 import { signOut } from "next-auth/react";
 import {
   Menu, X, LogOut, User, ChevronDown, Shield, ArrowRight,
-  LayoutDashboard, FolderOpen, FileText, MessageSquare, CreditCard, Search, ScrollText,
+  LayoutDashboard, FolderOpen, FileText, MessageSquare, Search, ScrollText,
   Sparkles,
 } from "lucide-react";
 import { Avatar } from "@/components/ui/avatar";
@@ -25,7 +25,6 @@ const clientLinks = [
   { href: "/dashboard/my-jobs", label: "My Jobs", icon: FolderOpen },
   { href: "/dashboard/contracts", label: "Contracts", icon: ScrollText },
   { href: "/dashboard/messages", label: "Messages", icon: MessageSquare },
-  { href: "/dashboard/payments", label: "Payments", icon: CreditCard },
 ];
 
 const freelancerLinks = [
@@ -34,7 +33,6 @@ const freelancerLinks = [
   { href: "/dashboard/applications", label: "Applications", icon: FileText },
   { href: "/dashboard/contracts", label: "Contracts", icon: ScrollText },
   { href: "/dashboard/messages", label: "Messages", icon: MessageSquare },
-  { href: "/dashboard/payments", label: "Payments", icon: CreditCard },
 ];
 
 const AUTH_ROUTES = ["/login", "/register"];
@@ -331,7 +329,7 @@ export function Navbar({ session }: NavbarProps) {
 
                     <div className="border-t border-gray-100 px-2 py-2">
                       <button
-                        onClick={() => { track(EVENTS.LOGOUT); signOut({ callbackUrl: "/" }); }}
+                        onClick={() => { track(EVENTS.LOGOUT); signOut({ redirectTo: "/login" }); }}
                         className="flex w-full items-center gap-3 px-3 py-2.5 text-[13px] font-medium text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors rounded-xl"
                         role="menuitem"
                       >

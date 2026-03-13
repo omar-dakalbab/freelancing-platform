@@ -12,6 +12,8 @@ export const freelancerProfileSchema = z.object({
   bio: z.string().min(10, "Bio must be at least 10 characters").max(2000),
   hourlyRate: z.coerce.number().min(1, "Hourly rate must be at least $1").max(10000, "Hourly rate cannot exceed $10,000"),
   skills: z.array(z.string()).min(1, "At least one skill is required").max(20),
+  whatsappNumber: z.string().max(20, "WhatsApp number too long").optional().or(z.literal("")),
+  phoneNumber: z.string().max(20, "Phone number too long").optional().or(z.literal("")),
 });
 
 export const portfolioItemSchema = z.object({

@@ -24,6 +24,8 @@ import {
   TrendingUp,
   Clock,
   Globe,
+  Mail,
+  Phone,
 } from "lucide-react";
 import type { Metadata } from "next";
 
@@ -510,6 +512,48 @@ export default async function FreelancerPublicProfilePage({ params }: PageProps)
                       <span className="text-xs text-gray-500 w-5 text-right">{count}</span>
                     </div>
                   ))}
+                </div>
+              </div>
+            )}
+
+            {/* Contact info */}
+            {(profile.user.email || profile.whatsappNumber || profile.phoneNumber) && (
+              <div className="rounded-2xl bg-white border border-gray-200 p-6">
+                <h3 className="text-sm font-semibold text-gray-900 mb-4">Contact</h3>
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2.5">
+                    <Mail className="h-4 w-4 text-gray-400 shrink-0" />
+                    <a
+                      href={`mailto:${profile.user.email}`}
+                      className="text-sm text-brand-700 hover:underline break-all"
+                    >
+                      {profile.user.email}
+                    </a>
+                  </div>
+                  {profile.whatsappNumber && (
+                    <div className="flex items-center gap-2.5">
+                      <MessageCircle className="h-4 w-4 text-green-500 shrink-0" />
+                      <a
+                        href={`https://wa.me/${profile.whatsappNumber.replace(/\D/g, "")}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-sm text-brand-700 hover:underline"
+                      >
+                        {profile.whatsappNumber}
+                      </a>
+                    </div>
+                  )}
+                  {profile.phoneNumber && (
+                    <div className="flex items-center gap-2.5">
+                      <Phone className="h-4 w-4 text-gray-400 shrink-0" />
+                      <a
+                        href={`tel:${profile.phoneNumber}`}
+                        className="text-sm text-brand-700 hover:underline"
+                      >
+                        {profile.phoneNumber}
+                      </a>
+                    </div>
+                  )}
                 </div>
               </div>
             )}

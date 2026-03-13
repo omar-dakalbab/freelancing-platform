@@ -649,7 +649,7 @@ export async function sendContractCreatedEmail(opts: {
 }
 
 // ---------------------------------------------------------------------------
-// Payment received — notify freelancer
+// Contract confirmed — notify freelancer
 // ---------------------------------------------------------------------------
 
 export async function sendPaymentReceivedEmail(opts: {
@@ -662,58 +662,35 @@ export async function sendPaymentReceivedEmail(opts: {
 }): Promise<void> {
   const appUrl = getAppUrl();
   const contractUrl = `${appUrl}/dashboard/freelancer/contracts/${opts.contractId}`;
-  const netAmount = opts.amount - opts.platformFee;
 
   const html = emailLayout(`
     <div style="text-align:center;">
       <div style="display:inline-block;width:64px;height:64px;line-height:64px;text-align:center;background-color:${BRAND.greenLight};border-radius:50%;margin-bottom:24px;">
         <span style="font-size:28px;">&#128176;</span>
       </div>
-      ${heading("Payment received!")}
+      ${heading("Contract confirmed!")}
       ${subheading(opts.jobTitle)}
     </div>
-    <div style="margin:24px 0;background-color:${BRAND.gray50};border:1px solid ${BRAND.gray100};border-radius:${BRAND.radiusSm};overflow:hidden;">
-      <table width="100%" cellpadding="0" cellspacing="0" role="presentation">
-        <tr>
-          <td style="padding:14px 20px;color:${BRAND.gray500};font-size:13px;font-weight:500;">Contract amount</td>
-          <td style="padding:14px 20px;color:${BRAND.gray900};font-size:15px;font-weight:500;text-align:right;">${formatUSD(opts.amount)}</td>
-        </tr>
-        <tr>
-          <td style="padding:14px 20px;color:${BRAND.gray500};font-size:13px;font-weight:500;border-top:1px solid ${BRAND.gray200};">Platform fee (10%)</td>
-          <td style="padding:14px 20px;color:${BRAND.gray500};font-size:15px;text-align:right;border-top:1px solid ${BRAND.gray200};">&minus;${formatUSD(opts.platformFee)}</td>
-        </tr>
-        <tr>
-          <td style="padding:16px 20px;color:${BRAND.gray900};font-size:15px;font-weight:700;border-top:2px solid ${BRAND.gray200};background-color:${BRAND.greenLight};">You will receive</td>
-          <td style="padding:16px 20px;color:${BRAND.green};font-size:20px;font-weight:700;text-align:right;border-top:2px solid ${BRAND.gray200};background-color:${BRAND.greenLight};">${formatUSD(netAmount)}</td>
-        </tr>
-      </table>
-    </div>
-    ${infoCard(BRAND.blueLight, BRAND.blueBorder, `
-      <p style="margin:0;color:${BRAND.primaryDark};font-size:13px;line-height:1.6;">
-        <strong>What's next?</strong> The funds are held in escrow. Complete the work and submit it to release payment.
-      </p>
-    `)}
+    ${p("Your contract has been confirmed. You can now begin working on this project.")}
+    ${p("Reach out to the client directly via the contact details on the contract to discuss next steps, timeline, and any outstanding details.")}
     <div style="text-align:center;">
       ${primaryButton("View Contract", contractUrl)}
     </div>
-  `, `Payment of ${formatUSD(netAmount)} received for "${opts.jobTitle}"`);
+  `, `Contract confirmed for "${opts.jobTitle}"`);
 
   const text = [
-    "Payment received",
+    "Contract confirmed",
     "",
-    `Your client has funded the contract for: ${opts.jobTitle}`,
-    `Contract amount: ${formatUSD(opts.amount)}`,
-    `Platform fee (10%): -${formatUSD(opts.platformFee)}`,
-    `You will receive: ${formatUSD(netAmount)}`,
-    "",
-    "The funds are held in escrow. Complete the work and submit it to release payment.",
+    `Your contract for "${opts.jobTitle}" has been confirmed.`,
+    "You can now begin working on this project.",
+    "Reach out to the client directly to discuss next steps and timeline.",
     "",
     `View your contract: ${contractUrl}`,
   ].join("\n");
 
   await sendEmail({
     to: { email: opts.toEmail, name: opts.freelancerName },
-    subject: `Payment received for "${opts.jobTitle}"`,
+    subject: `Contract confirmed for "${opts.jobTitle}"`,
     htmlContent: html,
     textContent: text,
   });

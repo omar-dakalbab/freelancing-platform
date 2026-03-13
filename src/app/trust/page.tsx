@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import {
-  Shield, Lock, Eye, AlertTriangle, UserCheck, CreditCard,
+  Shield, Eye, AlertTriangle, UserCheck, Phone,
   MessageSquare, ArrowRight, CheckCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -14,13 +14,13 @@ export const metadata: Metadata = {
 
 const pillars = [
   {
-    icon: Lock,
-    title: "Secure Payments",
-    description: "All payments are processed through Stripe with enterprise-grade encryption. Funds are held in escrow until work is approved, protecting both clients and freelancers.",
+    icon: Phone,
+    title: "Direct Communication",
+    description: "LetsWork facilitates direct connections between clients and freelancers. Once connected, you can take conversations off-platform via email or WhatsApp to discuss project details and compensation.",
     points: [
-      "Escrow-protected transactions",
-      "PCI DSS compliant payment processing",
-      "Funds released only on client approval",
+      "Connect via email or WhatsApp",
+      "Agree on terms directly with your counterpart",
+      "No platform fees or payment processing",
     ],
   },
   {
@@ -58,7 +58,6 @@ const pillars = [
 const reportReasons = [
   "Fraudulent job postings or fake profiles",
   "Harassment, threats, or abusive language",
-  "Requests to pay or communicate off-platform",
   "Spam or misleading content",
   "Intellectual property violations",
   "Any behavior that violates our Terms of Service",
@@ -164,9 +163,9 @@ export default function TrustPage() {
             <div className="grid gap-4 sm:grid-cols-2">
               {[
                 { tip: "Never share login credentials", detail: "LetsWork will never ask for your password via email or chat." },
-                { tip: "Keep payments on-platform", detail: "Off-platform payments aren't protected by our escrow system." },
-                { tip: "Review profiles carefully", detail: "Check reviews, portfolio, and profile completion before hiring." },
-                { tip: "Document everything", detail: "Use on-platform messaging for important project discussions." },
+                { tip: "Verify before you commit", detail: "Check reviews, portfolio, and profile completion before hiring or accepting a contract." },
+                { tip: "Review profiles carefully", detail: "Take time to evaluate a freelancer's or client's track record and reviews." },
+                { tip: "Document everything", detail: "Use on-platform messaging and direct communication to keep a clear record of project discussions." },
               ].map((item) => (
                 <div key={item.tip} className="rounded-xl border border-gray-100 bg-cream p-5 transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 hover:border-accent-200">
                   <p className="text-sm font-semibold text-gray-900">{item.tip}</p>

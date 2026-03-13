@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar } from "@/components/ui/avatar";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import type { Session } from "next-auth";
-import type { Contract, ClientProfile, FreelancerProfile, Job, Payment, User } from "@prisma/client";
+import type { Contract, ClientProfile, FreelancerProfile, Job, User } from "@prisma/client";
 
 type ContractWithRelations = Contract & {
   job: Pick<Job, "id" | "title">;
@@ -19,7 +19,6 @@ type ContractWithRelations = Contract & {
   freelancerProfile: FreelancerProfile & {
     user: Pick<User, "id" | "email" | "avatar">;
   };
-  payments: Payment[];
 };
 
 interface ContractsListViewProps {
@@ -35,12 +34,6 @@ const statusConfig: Record<string, { variant: "default" | "success" | "secondary
   CANCELLED: { variant: "destructive", label: "Cancelled" },
 };
 
-const paymentStatusConfig: Record<string, { variant: "default" | "success" | "secondary" | "warning" | "destructive"; label: string }> = {
-  PENDING: { variant: "warning", label: "Unpaid" },
-  COMPLETED: { variant: "success", label: "Paid" },
-  FAILED: { variant: "destructive", label: "Payment Failed" },
-  REFUNDED: { variant: "secondary", label: "Refunded" },
-};
 
 export function ContractsListView({ contracts, session }: ContractsListViewProps) {
   const role = session.user.role;
@@ -131,7 +124,6 @@ function ContractCard({
   const otherParty = isClient ? contract.freelancerProfile : contract.clientProfile;
   const displayName =
     (otherParty as ClientProfile & { user: Pick<User, "email" | "avatar"> }).user.email.split("@")[0];
-  const latestPayment = contract.payments[0];
 
   return (
     <Link href={`/dashboard/contracts/${contract.id}`} className="block rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-600 focus-visible:ring-offset-2">
@@ -149,11 +141,6 @@ function ContractCard({
               <Badge variant={statusConfig[contract.status]?.variant || "secondary"}>
                 {statusConfig[contract.status]?.label || contract.status}
               </Badge>
-              {latestPayment && (
-                <Badge variant={paymentStatusConfig[latestPayment.status]?.variant || "secondary"}>
-                  {paymentStatusConfig[latestPayment.status]?.label || latestPayment.status}
-                </Badge>
-              )}
             </div>
             <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-gray-500 mt-1">
               <span>
