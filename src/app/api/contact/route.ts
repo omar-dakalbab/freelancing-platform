@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { sendContactEmail } from "@/lib/email";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
+import { prisma } from "@/lib/prisma";
 
 const contactSchema = z.object({
   name: z.string().min(1, "Name is required").max(100),
@@ -33,6 +34,10 @@ export async function POST(req: NextRequest) {
     }
 
     const { name, email, subject, message } = parsed.data;
+
+    await prisma.contactSubmission.create({
+      data: { name, email, subject, message },
+    });
 
     await sendContactEmail({ name, email, subject, message });
 

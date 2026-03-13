@@ -53,7 +53,7 @@ const founder = {
     github: "https://github.com/omar-dakalbab",
     linkedin: "https://linkedin.com/in/omardakelbab",
     upwork: "https://www.upwork.com/freelancers/omardakelbab",
-    email: "omardakelbab@outlook.com",
+    email: "omardakelbab.dev@gmail.com",
   },
 };
 

@@ -8,7 +8,7 @@ import { Logo } from "@/components/ui/logo";
 const socialLinks = [
   { href: "https://github.com/omar-dakalbab", icon: Github, label: "GitHub" },
   { href: "https://linkedin.com/in/omardakelbab", icon: Linkedin, label: "LinkedIn" },
-  { href: "mailto:omardakelbab@outlook.com", icon: Mail, label: "Email" },
+  { href: "mailto:omardakelbab.dev@gmail.com", icon: Mail, label: "Email" },
 ];
 
 const footerLinks = {
