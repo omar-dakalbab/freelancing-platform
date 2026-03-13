@@ -70,7 +70,7 @@ const categories = [
     articles: [
       { q: "How do I reset my password?", a: "Click 'Forgot Password' on the login page. Enter your email and we'll send a reset link that expires in 1 hour." },
       { q: "Why is my account suspended?", a: "Accounts may be suspended for violating our Terms of Service. Contact support if you believe this was done in error." },
-      { q: "How do I delete my account?", a: "Contact our support team at support@tryletswork.com to request account deletion. Active contracts must be completed or cancelled first." },
+      { q: "How do I delete my account?", a: "Contact our support team at omardakelbab.dev@gmail.com to request account deletion. Active contracts must be completed or cancelled first." },
     ],
   },
 ];

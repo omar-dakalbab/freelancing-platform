@@ -61,7 +61,7 @@ const sections = [
   },
   {
     title: "14. Contact",
-    content: `If you have questions about these Terms, please contact us at legal@tryletswork.com.`,
+    content: `If you have questions about these Terms, please contact us at omardakelbab.dev@gmail.com.`,
   },
 ];
 

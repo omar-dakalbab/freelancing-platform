@@ -180,7 +180,7 @@ export default function CareersPage() {
                       </div>
                     </div>
                     <a
-                      href={`mailto:careers@tryletswork.com?subject=Application: ${job.title}`}
+                      href={`mailto:omardakelbab.dev@gmail.com?subject=Application: ${job.title}`}
                       className="shrink-0 inline-flex items-center gap-1.5 rounded-lg bg-brand-800 px-4 py-2 text-sm font-medium text-white hover:bg-brand-900 transition-colors self-start"
                     >
                       Apply
@@ -203,7 +203,7 @@ export default function CareersPage() {
               We&apos;re always looking for talented people. Send us your resume and we&apos;ll keep you in mind.
             </p>
             <a
-              href="mailto:careers@tryletswork.com?subject=General Application"
+              href="mailto:omardakelbab.dev@gmail.com?subject=General Application"
               className="mt-6 inline-flex items-center gap-2 rounded-lg bg-brand-800 px-6 py-2.5 text-sm font-medium text-white hover:bg-brand-900 transition-colors"
             >
               Send your resume

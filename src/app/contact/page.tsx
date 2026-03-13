@@ -13,7 +13,7 @@ const contactInfo = [
   {
     icon: Mail,
     title: "Email",
-    detail: "support@tryletswork.com",
+    detail: "omardakelbab.dev@gmail.com",
     description: "We typically respond within 24 hours",
   },
   {

@@ -54,7 +54,7 @@ const sections = [
   },
   {
     title: "Contact Us",
-    content: "If you have questions about our use of cookies, please contact us at privacy@tryletswork.com.",
+    content: "If you have questions about our use of cookies, please contact us at omardakelbab.dev@gmail.com.",
   },
 ];
 

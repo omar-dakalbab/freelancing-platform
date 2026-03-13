@@ -29,7 +29,7 @@ const sections = [
   },
   {
     title: "6. Your Rights",
-    content: `Depending on your jurisdiction, you may have the right to: (a) access the personal data we hold about you; (b) request correction of inaccurate data; (c) request deletion of your data; (d) object to or restrict processing of your data; (e) data portability; (f) withdraw consent. To exercise these rights, contact us at privacy@tryletswork.com.`,
+    content: `Depending on your jurisdiction, you may have the right to: (a) access the personal data we hold about you; (b) request correction of inaccurate data; (c) request deletion of your data; (d) object to or restrict processing of your data; (e) data portability; (f) withdraw consent. To exercise these rights, contact us at omardakelbab.dev@gmail.com.`,
   },
   {
     title: "7. Data Retention",
@@ -49,7 +49,7 @@ const sections = [
   },
   {
     title: "11. Contact Us",
-    content: `If you have questions about this Privacy Policy or our data practices, contact us at privacy@tryletswork.com.`,
+    content: `If you have questions about this Privacy Policy or our data practices, contact us at omardakelbab.dev@gmail.com.`,
   },
 ];
 
