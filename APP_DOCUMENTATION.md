@@ -17,7 +17,7 @@ FreelanceHub is a niche freelance hiring platform MVP inspired by Upwork. It ena
 | Authentication | NextAuth.js v5 (Auth.js) — credentials provider |
 | Payments | Stripe (Checkout + Webhooks) |
 | Email | Brevo (Sendinblue) transactional API |
-| AI Chatbot | Anthropic Claude API (with static fallback) |
+| AI Chatbot | Anthropic API (with static fallback) |
 | Styling | Tailwind CSS v4 + Radix UI primitives |
 | Forms | React Hook Form + Zod v4 validation |
 | State | Zustand |
@@ -385,7 +385,7 @@ After contract COMPLETED:
 |--------|------|------|-------------|
 | GET | `/api/skills` | - | List all skills |
 | POST | `/api/upload` | Yes | Upload file (avatar) |
-| POST | `/api/chat` | - | AI chatbot (Claude API) |
+| POST | `/api/chat` | - | AI chatbot (Anthropic API) |
 
 ### Admin (9 endpoints)
 | Method | Path | Auth | Description |
@@ -433,7 +433,7 @@ The platform includes a floating chat widget on every page with two modes:
 - Topics: posting jobs, applying, payments, contracts, reviews, messaging, profiles, search
 
 ### AI Mode (`USE_AI = true`)
-- Powered by Claude (Haiku 4.5) via Anthropic API
+- Powered by Anthropic API
 - Context-aware system prompt with full platform knowledge
 - Streaming responses for smooth UX
 - Knows the user's role and tailors guidance accordingly

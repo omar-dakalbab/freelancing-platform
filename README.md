@@ -13,7 +13,7 @@ A full-stack freelancing platform connecting businesses with freelance talent. B
 | Auth | NextAuth v5 (credentials provider, bcrypt) |
 | Payments | Stripe (checkout sessions, webhooks) |
 | Email | Brevo transactional email API |
-| AI Chat | Anthropic Claude API |
+| AI Chat | Anthropic API |
 | Forms | React Hook Form + Zod validation |
 | State | Zustand |
 | Testing | Playwright (E2E + accessibility via axe-core) |
@@ -151,7 +151,7 @@ tests/
 - `DELETE /api/admin/reviews/[id]` - Remove review
 
 ### Other
-- `POST /api/chat` - AI chatbot (Claude)
+- `POST /api/chat` - AI chatbot
 - `POST /api/upload` - Avatar file upload
 - `GET /api/skills` - Skills autocomplete
 
@@ -184,7 +184,7 @@ tests/
 - Full audit log of admin actions
 
 ### Platform
-- AI-powered chat assistant (Claude) for user support
+- AI-powered chat assistant for user support
 - Responsive design (mobile, tablet, desktop)
 - Accessibility: WCAG-compliant focus management, ARIA labels, keyboard navigation, reduced motion support
 - Password reset flow via transactional email (Brevo)
